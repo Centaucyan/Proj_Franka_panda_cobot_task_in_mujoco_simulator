@@ -2,16 +2,17 @@
 * Update: 2026.08.31.
 
 ## 1. 개요
-* Mujoco 가상환경에서 Franka Emika Panda 로봇팔과 제조 공정 작업자와 협동하여 완성품을 제작
+* Mujoco 가상환경에서 Franka Emika Panda 로봇팔과 물류 분류 작업자와 협동하여 완성품을 제작
 ---
 
 ## 2. 작업 공간
-![workspace](./documents/scenario_and_prd/20260831_01_work_space.png)
+![workspace](./documents/scenario_and_prd/20260831_02_work_space.png)
 ---
 
 ## 3. 환경
-* **OS:** Windows10
-* **Python versioin:** 3.10+(conda 가상환경)
+* **OS:** Ubuntu 22.04
+* **Framework:** ROS2 Humble
+* **Python versioin:** 3.11(conda 가상환경)
 ---
 
 ## 4. Pre-installed

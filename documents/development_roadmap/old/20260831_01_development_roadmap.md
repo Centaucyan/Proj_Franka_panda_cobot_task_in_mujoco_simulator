@@ -41,8 +41,8 @@ ROS의 통신 오버헤드를 배제하고 초고속 시뮬레이션 및 강화�
 
 | 단계 (Phase) | 마일스톤 명칭 | 주요 산출물 | 예상 기간 |
 | :--- | :--- | :--- | :---: |
-| **Phase 1** | 개발 환경 구축 & 구조 설계 | 가상환경, 의존성 패키지, 모듈식 디렉토리 구조 | 1~2일 |
-| **Phase 2** | MuJoCo 3D 가상 씬 모델링 | `scene_dual_panda.xml` (로봇 2대, 작업대, 6개 구역, 센서) | 2~3일 |
+| **Phase 1** | 개발 환경 구축 & 구조 설계 | 가상환경, `requirements.txt`, 모듈식 디렉토리 스켈레톤 | 1~2일 |
+| **Phase 2** | MuJoCo 3D 가상 씬 & 설정 모델링 | `configs/config.yaml`, `scene_dual_panda.xml` (로봇 2대, 작업대, 6개 구역, 센서) | 2~3일 |
 | **Phase 3** | 로봇 모션 제어 & Pick & Place | IK 솔버, 5차 다항식 궤적 생성기, 그리퍼 제어기 | 3~4일 |
 | **Phase 4** | 비전 검수 & 센서 파이프라인 | Depth 품질 검수 모듈, 2D LiDAR 레이캐스터, 손 간섭 감지기 | 3~4일 |
 | **Phase 5** | 안전 감독관 & 공정 FSM 구축 | Robot1/Worker/Robot2 상태 머신, ISO/TS 15066 SSM, Undo, 10분 셧다운 | 4~5일 |
@@ -54,43 +54,46 @@ ROS의 통신 오버헤드를 배제하고 초고속 시뮬레이션 및 강화�
 ## 3. 상세 단계별 개발 계획 (Detailed Action Plan)
 
 ### 📌 Phase 1: 개발 환경 구축 및 프로젝트 템플릿 구조화
-* **목표**: Windows 10 환경에 최적화된 Python 가상환경을 구축하고 모듈 간 느슨한 결합(Loose Coupling)을 지원하는 디렉토리 표준화.
+* **목표**: Windows 10 환경에 최적화된 Python 가상환경을 구축하고 모듈 간 느슨한 결합(Loose Coupling)을 지원하는 디렉토리 스켈레톤을 생성합니다.
 * **세부 작업**:
-  1. Python 3.10+ 기반 가상환경(`venv`) 생성 및 라이브러리 설치 (`mujoco`, `gymnasium`, `numpy`, `opencv-python`, `open3d`, `pyyaml`, `matplotlib`).
-  2. 디렉토리 구조 생성:
+  1. Python 3.10+ 기반 가상환경(`venv` 또는 `conda`) 생성 및 의존성 라이브러리 설치 (`mujoco`, `gymnasium`, `numpy`, `scipy`, `opencv-python`, `open3d`, `torch`, `stable-baselines3`, `pyyaml`, `matplotlib`, `rich`).
+  2. 루트 디렉토리에 `requirements.txt` 파일 생성.
+  3. 모듈식 디렉토리 스켈레톤 생성:
      ```text
-     ├── configs/             # config.yaml (좌표계, 임계치, 파라미터)
-     ├── documents/           # PRD, 시나리오, 로드맵
+     ├── configs/             # 설정 파일 디렉토리
+     ├── documents/           # PRD, 시나리오, 로드맵 문서
      ├── model/               # MJCF XML 및 3D 메시 파일
      ├── src/
      │   ├── env/             # Gymnasium 표준 DualFrankaHRCEnv 클래스
-     │   ├── controllers/     # IK, Trajectory Generator, Gripper
+     │   ├── controllers/     # IK, Trajectory Generator, Gripper 제어
      │   ├── vision/          # Depth 검수, Point Cloud 처리
      │   ├── safety/          # 2D LiDAR 모니터링, SSM 안전 거리 계산, Supervisor
      │   ├── fsm/             # Robot 1, Robot 2, Worker FSM
      │   ├── hmi/             # HMI 버튼 이벤트, 3D Overlay 가시화
-     │   └── utils/           # 로깅, 수학 유틸리티
+     │   └── utils/           # 설정 로더, 로깅, 수학 유틸리티
      └── tests/               # 단위/통합 테스트
      ```
-  3. `configs/config.yaml` 기본 설정 파일 작성.
 
 ---
 
-### 📌 Phase 2: MuJoCo 3D 가상 씬 및 모델링
-* **목표**: PRD 작업 공간 레이아웃 명세를 반영한 통합 `scene_dual_panda.xml` 완성.
+### 📌 Phase 2: MuJoCo 3D 가상 씬 및 설정 모델링
+* **목표**: 시스템 전체의 중앙 기준이 되는 `configs/config.yaml`을 정의하고, 이를 기반으로 PRD 작업 공간 레이아웃 명세를 반영한 통합 `scene_dual_panda.xml`을 완성합니다.
 * **세부 작업**:
-  1. **Dual Robot 배치**: `model/franka_emika_panda`를 기반으로 로봇 1(공급)과 로봇 2(배출) 베이스 좌표 정의.
-  2. **작업 공간 및 6대 구역 모델링**:
+  1. **중앙 설정 파일 작성 (`configs/config.yaml`)**:
+     * 듀얼 로봇 베이스 위치/자세, 6개 작업/적재 구역 3D 좌표 및 크기, 센서(카메라/LiDAR) 사양, 안전 임계치(10%, 90%, 10분 등) 정의.
+  2. **Dual Robot 배치**: `model/franka_emika_panda` 모델을 기반으로 `config.yaml`에 정의된 로봇 1(공급)과 로봇 2(배출) 베이스 좌표 배치.
+  3. **작업 공간 및 6대 구역 모델링**:
      * 중앙 작업대 테이블 지오메트리
      * 상단 3개 구역: `부품 적재함`, `불량품 적재함(공용)`, `완성품 적재함`
      * 하단 3개 구역: `부품 대기 공간`, `작업자 작업 공간`, `검수 공간`
-  3. **작업 대상물(Objects) 정의**:
+  4. **작업 대상물(Objects) 정의**:
      * 원자재 부품 (정상/불량 형상 변형 파라미터 지원)
      * 조립 완성품 모델
-  4. **센서 마운팅**:
+  5. **센서 마운팅**:
      * 각 로봇 EE(End-Effector) 중앙에 Wrist `<camera>`(Depth 획득용) 장착
      * 가상 2D Safety LiDAR 센서 기준 위치 정의
-  5. MuJoCo Viewer로 씬 지오메트리 및 간섭 검사 수행.
+  6. **설정 로더(`config_loader.py`) 작성 및 MuJoCo Viewer 검증**:
+     * Python 설정 로더 모듈 구현 및 씬 지오메트리 간섭/좌표 일치 검사 수행.
 
 ---
 
