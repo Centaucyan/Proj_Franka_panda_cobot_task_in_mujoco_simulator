@@ -54,87 +54,97 @@
 각 패키지와 인터페이스는 초기에 한 번에 생성하지 않고, **해당 기능 개발 단계(Phase)에 진입할 때 목적과 당위성을 학습하며 순차적으로 생성/확장**합니다.
 
 ```text
-ros2_ws/src/
-├── franka_logistics_msgs/          # [Phase 01 패키지 생성, Phase 04~07 순차 인터페이스 추가]
-│   ├── action/
-│   │   └── SortItem.action         # [Phase 04 추가] 단일 물류 파지 및 비동기 안착 제어
-│   ├── msg/
-│   │   ├── BinStatus.msg           # [Phase 05 추가] 개별 적재함 차지율 및 만재 상태
-│   │   ├── BinStatusArray.msg      # [Phase 05 추가] 6개 적재함 전체 상태 배열
-│   │   └── SafetyStatus.msg        # [Phase 06 추가] LiDAR 경고/위험 구역 침범 및 E-Stop 상태
-│   └── srv/
-│       └── MesNotification.srv     # [Phase 07 추가] 상위 MES 연동 요청-응답 (90% 경고, 만재, 소진)
-│
-├── franka_logistics_description/   # [Phase 02 생성] 로봇, 작업대, 적재함, 컨베이어 MJCF/URDF 및 3D 메시
-│   ├── mjcf/scene_dual_panda_logistics.xml
-│   └── meshes/
-│
-├── franka_logistics_sim/           # [Phase 03 생성] MuJoCo 3.6.x 물리 시뮬레이션 및 ROS2 Sim Bridge 노드
-│   ├── simulation_bridge_node      # 1kHz 물리 스텝, JointState, Camera, LiDAR 퍼블리셔
-│   └── conveyor_controller_node    # 분류 불가품 배출 컨베이어 물리 구동기
-│
-├── franka_logistics_control/       # [Phase 04 생성] 로봇 기구학 및 모션 제어 (Rule-based & RL Policy)
-│   ├── ik_solver                   # DLS 기반 수치적 역기구학
-│   ├── trajectory_planner          # 5차 다항식 부드러운 궤적 생성기
-│   ├── rl_policy_controller_node   # 학습된 PPO 신경망 기반 궤적/속도 추론기
-│   └── motion_controller_node      # FollowJointTrajectory 및 로봇별 P&P 제어
-│
-├── franka_logistics_vision/        # [Phase 05 생성] 비전 인지 및 3D Depth 적재함 스캔
-│   ├── item_detector_node          # Wrist 카메라 기반 물류 색상/타입 분류
-│   └── bin_occupancy_scanner_node  # Place 직후 적재함 3D Depth 스캔 및 차지율 계산
-│
-├── franka_logistics_safety/        # [Phase 06 생성] 안전 감독관 (Safety Supervisor)
-│   ├── lidar_monitor_node          # 2D LiDAR 2기 Warning/Danger Zone 레이캐스트 판별
-│   ├── ssm_calculator              # ISO/TS 15066 SSM 동적 안전 이격거리 계산
-│   └── safety_supervisor_node      # 작업자 접근 감속/정지 및 E-Stop 인터록
-│
-├── franka_logistics_fsm/           # [Phase 07 생성] 중앙 공정 조율기 (FSM / BehaviorTree)
-│   ├── dual_robot_coordinator_node # 듀얼 로봇 FCFS 충돌 회피 및 최근접 타겟 할당
-│   └── fsm_manager_node            # 정상/예외 시퀀스, 10분 미공급 셧다운 타이머
-│
-├── franka_logistics_hmi/           # [Phase 08 생성] HMI 제어반 및 RViz2 3D 대시보드
-│   ├── hmi_panel_node              # On/Off, Start/Stop, E-Stop 제어반
-│   └── rviz_marker_publisher_node  # 적재함 차지율 HUD, LiDAR 안전 구역 3D 오버레이
-│
-├── franka_logistics_bringup/       # [Phase 09 생성] 통합 Launch 및 설정 파일
-│   ├── config/logistics_config.yaml
-│   ├── launch/system_bringup.launch.py
-│   └── rviz/dual_panda_logistics.rviz
-│
-└── franka_logistics_rl/            # [Phase 10 생성] 강화학습 환경 및 학습 파이프라인
-    ├── envs/dual_panda_env.py      # Gymnasium 표준 듀얼 로봇 환경
-    ├── train_ppo.py                # Stable-Baselines3 PPO 분산 학습 스크립트
-    └── export_policy.py            # 학습 완료 모델 ONNX/PyTorch 변환
+Proj_Franka_panda_cobot_task_in_ros2_and_mujoco_simulator/
+├── documents/
+│   ├── development_roadmap/
+│   │   ├── 20260831_02_development_roadmap.md
+│   │   └── rm_phase01_environment_and_workspace_setup.md
+│   └── scenario_and_prd/
+├── model/
+│   └── franka_emika_panda/
+├── environment.yaml
+└── ros2_ws/src/
+    ├── franka_logistics_msgs/          # [Phase 01 패키지 생성, Phase 04~07 순차 인터페이스 추가]
+    │   ├── action/
+    │   │   └── SortItem.action         # [Phase 04 추가] 단일 물류 파지 및 비동기 안착 제어
+    │   ├── msg/
+    │   │   ├── BinStatus.msg           # [Phase 05 추가] 개별 적재함 차지율 및 만재 상태
+    │   │   ├── BinStatusArray.msg      # [Phase 05 추가] 6개 적재함 전체 상태 배열
+    │   │   └── SafetyStatus.msg        # [Phase 06 추가] LiDAR 경고/위험 구역 침범 및 E-Stop 상태
+    │   └── srv/
+    │       └── MesNotification.srv     # [Phase 07 추가] 상위 MES 연동 요청-응답 (90% 경고, 만재, 소진)
+    │
+    ├── franka_logistics_description/   # [Phase 02 생성] 로봇, 작업대, 적재함, 컨베이어 MJCF/URDF 및 3D 메시
+    │   ├── mjcf/scene_dual_panda_logistics.xml
+    │   └── meshes/
+    │
+    ├── franka_logistics_sim/           # [Phase 03 생성] MuJoCo 3.6.x 물리 시뮬레이션 및 ROS2 Sim Bridge 노드
+    │   ├── simulation_bridge_node      # 1kHz 물리 스텝, JointState, Camera, LiDAR 퍼블리셔
+    │   └── conveyor_controller_node    # 분류 불가품 배출 컨베이어 물리 구동기
+    │
+    ├── franka_logistics_control/       # [Phase 04 생성] 로봇 기구학 및 모션 제어 (Rule-based & RL Policy)
+    │   ├── ik_solver                   # DLS 기반 수치적 역기구학
+    │   ├── trajectory_planner          # 5차 다항식 부드러운 궤적 생성기
+    │   ├── rl_policy_controller_node   # 학습된 PPO 신경망 기반 궤적/속도 추론기
+    │   └── motion_controller_node      # FollowJointTrajectory 및 로봇별 P&P 제어
+    │
+    ├── franka_logistics_vision/        # [Phase 05 생성] 비전 인지 및 3D Depth 적재함 스캔
+    │   ├── item_detector_node          # Wrist 카메라 기반 물류 색상/타입 분류
+    │   └── bin_occupancy_scanner_node  # Place 직후 적재함 3D Depth 스캔 및 차지율 계산
+    │
+    ├── franka_logistics_safety/        # [Phase 06 생성] 안전 감독관 (Safety Supervisor)
+    │   ├── lidar_monitor_node          # 2D LiDAR 2기 Warning/Danger Zone 레이캐스트 판별
+    │   ├── ssm_calculator              # ISO/TS 15066 SSM 동적 안전 이격거리 계산
+    │   └── safety_supervisor_node      # 작업자 접근 감속/정지 및 E-Stop 인터록
+    │
+    ├── franka_logistics_fsm/           # [Phase 07 생성] 중앙 공정 조율기 (FSM / BehaviorTree)
+    │   ├── dual_robot_coordinator_node # 듀얼 로봇 FCFS 충돌 회피 및 최근접 타겟 할당
+    │   └── fsm_manager_node            # 정상/예외 시퀀스, 10분 미공급 셧다운 타이머
+    │
+    ├── franka_logistics_hmi/           # [Phase 08 생성] HMI 제어반 및 RViz2 3D 대시보드
+    │   ├── hmi_panel_node              # On/Off, Start/Stop, E-Stop 제어반
+    │   └── rviz_marker_publisher_node  # 적재함 차지율 HUD, LiDAR 안전 구역 3D 오버레이
+    │
+    ├── franka_logistics_bringup/       # [Phase 09 생성] 통합 Launch 및 설정 파일
+    │   ├── config/logistics_config.yaml
+    │   ├── launch/system_bringup.launch.py
+    │   └── rviz/dual_panda_logistics.rviz
+    │
+    └── franka_logistics_rl/            # [Phase 10 생성] 강화학습 환경 및 학습 파이프라인
+        ├── envs/dual_panda_env.py      # Gymnasium 표준 듀얼 로봇 환경
+        ├── train_ppo.py                # Stable-Baselines3 PPO 분산 학습 스크립트
+        └── export_policy.py            # 학습 완료 모델 ONNX/PyTorch 변환
 ```
 
 ---
 
 ## 2. 단계별 마일스톤 (Milestones Overview)
 
-| 단계 (Phase) | 마일스톤 명칭 | 신규 생성 패키지 & 인터페이스 | 주요 산출물 | 예상 기간 |
+| 단계 (Phase) | 마일스톤 명칭 | 신규 생성 패키지 & 인터페이스 | 상세 실습 가이드 & 주요 산출물 | 예상 기간 |
 | :--- | :--- | :--- | :--- | :---: |
-| **Phase 01** | 가상환경 구축 & ROS2 기본 환경 준비 | `franka_logistics_msgs` (패키지 뼈대) | `environment.yml` (Python 3.10), 워크스페이스 빌드 파이프라인 검증 | 1~2일 |
-| **Phase 02** | MuJoCo 3.6.x 3D 가상 씬 및 물류 환경 모델링 | `franka_logistics_description` | `scene_dual_panda_logistics.xml` (로봇 2대, 작업대, 적재함 6개, 컨베이어 2개, 물류 6종) | 2~3일 |
-| **Phase 03** | MuJoCo ↔ ROS2 Sim Bridge 노드 구현 | `franka_logistics_sim` | `simulation_bridge_node` (1kHz 물리 루프, JointState, Camera, LiDAR 퍼블리셔) | 3~4일 |
-| **Phase 04** | 로봇 기구학, 궤적 생성 & P&P Action 서버 | `franka_logistics_control`<br>➕ `SortItem.action` | DLS IK 솔버, 5차 다항식 궤적 생성기, `SortItem.action` 서버 및 클라이언트 | 3~4일 |
-| **Phase 05** | 비전 분류, 적재함 3D 차지율 스캔 & 컨베이어 | `franka_logistics_vision`<br>➕ `BinStatus.msg`, `BinStatusArray.msg` | Wrist Depth 물류 검출 노드, **적재함 3D 차지율 계산 노드**, 컨베이어 구동 노드 | 3~4일 |
-| **Phase 06** | 듀얼 로봇 FCFS 충돌 방지 & 안전 감독관 구축 | `franka_logistics_safety`<br>➕ `SafetyStatus.msg` | **공유 작업 영역 선점 회피 조율기**, 2D-LiDAR SSM 감속/정지, E-Stop 인터록 | 4~5일 |
-| **Phase 07** | 공정 조율 FSM, MES 인터페이스 & 10분 Auto-Off | `franka_logistics_fsm`<br>➕ `MesNotification.srv` | 전체 분류 FSM, 만재 시 품목 제외, 10분 미공급 셧다운 타이머, MES 통신 | 3~4일 |
-| **Phase 08** | HMI 제어반 서비스 & RViz2 3D 모니터링 HUD | `franka_logistics_hmi` | HMI 스위치 3종 서비스, **적재함 차지율 RViz2 HUD**, 3D 안전 구역 렌더러 | 2~3일 |
-| **Phase 09** | 종합 통합 검증, 5-KPI 평가 & ros2bag 테스트 | `franka_logistics_bringup` | `system_bringup.launch.py`, 100개 물품 스트레스 테스트, 5대 KPI 정량 평가 | 3~4일 |
-| **Phase 10** | **Gymnasium 연동 & PPO 강화학습(RL) 고도화** | `franka_logistics_rl` | `DualFrankaLogisticsEnv`, PPO 학습 신경망, ROS2 추론 노드, Rule vs RL 성능 비교 | 4~5일 |
+| **Phase 01** | 가상환경 구축 & ROS2 기본 환경 준비 | `franka_logistics_msgs` (패키지 뼈대) | • [rm_phase01_environment_and_workspace_setup.md](./rm_phase01_environment_and_workspace_setup.md)<br>• `environment.yaml` (Python 3.10) | 1~2일 |
+| **Phase 02** | MuJoCo 3.6.x 3D 가상 씬 및 물류 환경 모델링 | `franka_logistics_description` | • `rm_phase02_mujoco_scene_modeling.md`<br>• `scene_dual_panda_logistics.xml` (로봇 2대, 작업대, 적재함 6개, 컨베이어 2개, 물류 6종) | 2~3일 |
+| **Phase 03** | MuJoCo ↔ ROS2 Sim Bridge 노드 구현 | `franka_logistics_sim` | • `rm_phase03_ros2_sim_bridge_node.md`<br>• `simulation_bridge_node` (1kHz 물리 루프, JointState, Camera, LiDAR 퍼블리셔) | 3~4일 |
+| **Phase 04** | 로봇 기구학, 궤적 생성 & P&P Action 서버 | `franka_logistics_control`<br>➕ `SortItem.action` | • `rm_phase04_kinematics_and_sort_item_action.md`<br>• DLS IK 솔버, 5차 다항식 궤적 생성기, `SortItem.action` 서버/클라이언트 | 3~4일 |
+| **Phase 05** | 비전 분류, 적재함 3D 차지율 스캔 & 컨베이어 | `franka_logistics_vision`<br>➕ `BinStatus.msg`, `BinStatusArray.msg` | • `rm_phase05_vision_and_bin_occupancy.md`<br>• Wrist Depth 물류 검출 노드, **적재함 3D 차지율 계산 노드**, 컨베이어 구동 노드 | 3~4일 |
+| **Phase 06** | 듀얼 로봇 FCFS 충돌 방지 & 안전 감독관 구축 | `franka_logistics_safety`<br>➕ `SafetyStatus.msg` | • `rm_phase06_fcfs_coordinator_and_safety.md`<br>• **공유 작업 영역 선점 회피 조율기**, 2D-LiDAR SSM 감속/정지, E-Stop 인터록 | 4~5일 |
+| **Phase 07** | 공정 조율 FSM, MES 인터페이스 & 10분 Auto-Off | `franka_logistics_fsm`<br>➕ `MesNotification.srv` | • `rm_phase07_fsm_and_mes_notification.md`<br>• 전체 분류 FSM, 만재 시 품목 제외, 10분 미공급 셧다운 타이머, MES 통신 | 3~4일 |
+| **Phase 08** | HMI 제어반 서비스 & RViz2 3D 모니터링 HUD | `franka_logistics_hmi` | • `rm_phase08_hmi_and_rviz_dashboard.md`<br>• HMI 스위치 3종 서비스, **적재함 차지율 RViz2 HUD**, 3D 안전 구역 렌더러 | 2~3일 |
+| **Phase 09** | 종합 통합 검증, 5-KPI 평가 & ros2bag 테스트 | `franka_logistics_bringup` | • `rm_phase09_system_integration_and_kpi.md`<br>• `system_bringup.launch.py`, 100개 물품 스트레스 테스트, 5대 KPI 정량 평가 | 3~4일 |
+| **Phase 10** | **Gymnasium 연동 & PPO 강화학습(RL) 고도화** | `franka_logistics_rl` | • `rm_phase10_gymnasium_and_ppo_rl.md`<br>• `DualFrankaLogisticsEnv`, PPO 학습 신경망, ROS2 추론 노드, Rule vs RL 성능 비교 | 4~5일 |
 
 ---
 
 ## 3. 상세 단계별 개발 계획 (Detailed Action Plan)
 
 ### 📌 Phase 01: 가상환경 구축 & ROS2 기본 환경 준비
+* **실습 가이드**: [rm_phase01_environment_and_workspace_setup.md](./rm_phase01_environment_and_workspace_setup.md)
 * **목표**: Ubuntu 22.04 상에서 Miniconda 가상환경(`ros2_mujoco_panda_py3_10`, Python 3.10)을 구축하고, 커스텀 인터페이스 패키지(`franka_logistics_msgs`) 기본 뼈대를 빌드하여 ROS2 Humble 워크스페이스 환경 검증.
 * **세부 작업**:
-  1. **Miniconda 환경 파일 (`environment.yml`) 작성 및 활성화**:
+  1. **Miniconda 환경 파일 (`environment.yaml`) 작성 및 활성화**:
      * `name: ros2_mujoco_panda_py3_10`
      * `python=3.10`, `mujoco>=3.6.0`, `gymnasium`, `stable-baselines3`, `torch`, `numpy`, `scipy`, `opencv-python`, `open3d`, `pyyaml`, `rich`, `colcon-common-extensions`, `transforms3d` 등 정의.
-     * `conda env create -f environment.yml` 및 `conda activate ros2_mujoco_panda_py3_10` 검증.
+     * `conda env create -f environment.yaml` 및 `conda activate ros2_mujoco_panda_py3_10` 검증.
   2. **인터페이스 패키지 뼈대 생성 (`franka_logistics_msgs`)**:
      * `ros2 pkg create --build-type ament_cmake franka_logistics_msgs` 명령으로 기본 패키지 생성.
      * `package.xml` 및 `CMakeLists.txt`에 `rosidl_default_generators` 의존성 기본 설정.
@@ -144,6 +154,7 @@ ros2_ws/src/
 ---
 
 ### 📌 Phase 02: MuJoCo 3.6.x 3D 가상 씬 및 물류 환경 모델링
+* **실습 가이드**: `rm_phase02_mujoco_scene_modeling.md` (작성 예정)
 * **목표**: PRD 작업 공간 레이아웃 명세를 충족하는 설명 패키지(`franka_logistics_description`)를 생성하고, 통합 MJCF 가상 씬(`scene_dual_panda_logistics.xml`) 완성.
 * **신규 패키지**: `franka_logistics_description` (`ament_cmake` 또는 `ament_python`)
 * **세부 작업**:
@@ -162,6 +173,7 @@ ros2_ws/src/
 ---
 
 ### 📌 Phase 03: MuJoCo ↔ ROS2 Sim Bridge 노드 구현 (가상 하드웨어 드라이버)
+* **실습 가이드**: `rm_phase03_ros2_sim_bridge_node.md` (작성 예정)
 * **목표**: MuJoCo 물리 엔진과 ROS2 네트워크를 실시간으로 결합하는 고속 통신 시뮬레이션 패키지(`franka_logistics_sim`) 생성 및 브릿지 노드 구현.
 * **신규 패키지**: `franka_logistics_sim`
 * **사용 인터페이스**: ROS2 표준 메시지 (`sensor_msgs`, `geometry_msgs`, `std_msgs`)
@@ -176,6 +188,7 @@ ros2_ws/src/
 ---
 
 ### 📌 Phase 04: 로봇 기구학, 궤적 생성 & P&P Action 서버
+* **실습 가이드**: `rm_phase04_kinematics_and_sort_item_action.md` (작성 예정)
 * **목표**: 제어 패키지(`franka_logistics_control`)를 생성하고, Pick & Place의 비동기 제어/피드백/취소를 위한 `SortItem.action`을 정의하여 Action 기반 물류 이송 파이프라인 구현.
 * **신규 패키지**: `franka_logistics_control`
 * **신규 인터페이스 추가**: `franka_logistics_msgs/action/SortItem.action`
@@ -193,6 +206,7 @@ ros2_ws/src/
 ---
 
 ### 📌 Phase 05: 비전 분류, 적재함 3D 차지율 스캔 & 컨베이어 배출
+* **실습 가이드**: `rm_phase05_vision_and_bin_occupancy.md` (작성 예정)
 * **목표**: 비전 패키지(`franka_logistics_vision`)를 생성하고, 적재함 상태 브로드캐스팅을 위한 `BinStatus.msg`/`BinStatusArray.msg`를 정의하여 비전 분류 및 3D 차지율 산출 파이프라인 완성.
 * **신규 패키지**: `franka_logistics_vision`
 * **신규 인터페이스 추가**: `franka_logistics_msgs/msg/BinStatus.msg`, `BinStatusArray.msg`
@@ -210,6 +224,7 @@ ros2_ws/src/
 ---
 
 ### 📌 Phase 06: 듀얼 로봇 FCFS 충돌 방지 & 안전 감독관 구축
+* **실습 가이드**: `rm_phase06_fcfs_coordinator_and_safety.md` (작성 예정)
 * **목표**: 안전 감독 패키지(`franka_logistics_safety`)를 생성하고, 안전 및 E-Stop 상태 전파를 위한 `SafetyStatus.msg`를 정의하여 FCFS 충돌 방지 및 ISO/TS 15066 SSM 안전 체계 구축.
 * **신규 패키지**: `franka_logistics_safety`
 * **신규 인터페이스 추가**: `franka_logistics_msgs/msg/SafetyStatus.msg`
@@ -226,6 +241,7 @@ ros2_ws/src/
 ---
 
 ### 📌 Phase 07: 공정 조율 FSM, MES 인터페이스 & 10분 Auto-Off
+* **실습 가이드**: `rm_phase07_fsm_and_mes_notification.md` (작성 예정)
 * **목표**: 상태 관리 패키지(`franka_logistics_fsm`)를 생성하고, 상위 MES 연동을 위한 `MesNotification.srv`를 정의하여 전체 공정 시퀀스 및 10분 미공급 자동 셧다운 완성.
 * **신규 패키지**: `franka_logistics_fsm`
 * **신규 인터페이스 추가**: `franka_logistics_msgs/srv/MesNotification.srv`
@@ -245,6 +261,7 @@ ros2_ws/src/
 ---
 
 ### 📌 Phase 08: HMI 제어반 서비스 & RViz2 3D 모니터링 HUD
+* **실습 가이드**: `rm_phase08_hmi_and_rviz_dashboard.md` (작성 예정)
 * **목표**: HMI 패키지(`franka_logistics_hmi`)를 생성하고, 제어반 서비스 및 RViz2 3D HUD 대시보드 구축.
 * **신규 패키지**: `franka_logistics_hmi`
 * **사용 인터페이스**: `std_srvs/srv/SetBool`, `std_srvs/srv/Trigger`, `visualization_msgs/msg/MarkerArray`, `franka_logistics_msgs`
@@ -256,6 +273,7 @@ ros2_ws/src/
 ---
 
 ### 📌 Phase 09: 종합 통합 검증, 5-KPI 평가 & ros2bag 테스트
+* **실습 가이드**: `rm_phase09_system_integration_and_kpi.md` (작성 예정)
 * **목표**: 전체 런처 및 설정을 총괄하는 `franka_logistics_bringup` 패키지를 생성하고, PRD 5대 KPI 정량 평가 및 ros2bag 데이터 무결성 검증.
 * **신규 패키지**: `franka_logistics_bringup`
 * **세부 작업**:
@@ -267,6 +285,7 @@ ros2_ws/src/
 ---
 
 ### 📌 Phase 10: Gymnasium 연동 & PPO 강화학습(RL) 고도화 (지능형 적응 제어)
+* **실습 가이드**: `rm_phase10_gymnasium_and_ppo_rl.md` (작성 예정)
 * **목표**: 강화학습 전용 패키지(`franka_logistics_rl`)를 생성하고, Gymnasium 표준 환경 구축 및 PPO 알고리즘을 통한 동적 충돌 회피/지능형 궤적 최적화 정책 학습 및 ROS2 실시간 배포.
 * **신규 패키지**: `franka_logistics_rl`
 * **세부 작업**:
