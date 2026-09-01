@@ -1,8 +1,22 @@
+ROOT_PATH = Proj_Franka_panda_cobot_task_in_ros2_and_mujoco_simulator
+
 === Phase 01 ===
 @ 생성
-1. Proj_Franka_panda_cobot_task_in_ros2_and_mujoco_simulator/environment.yaml 생성
-2. Proj_Franka_panda_cobot_task_in_ros2_and_mujoco_simulator/ros2_ws/src 폴더 생성
-3. Proj_Franka_panda_cobot_task_in_ros2_and_mujoco_simulator/ros2_ws/src 폴더에 'franka_logistics_msgs' ROS2 패키지 생성
+1. ROOT_PATH/environment.yaml 파일 생성
+2. ROOT_PATH/ros2_ws/src 폴더 생성
+3. ROOT_PATH/ros2_ws/src 폴더에 'franka_logistics_msgs' ROS2 패키지 생성
+
+@ 수정
+1. ROOT_PATH/ros2_ws/src/franka_logistics_msgs/package.xml 파일 수정
+2. ROOT_PATH/ros2_ws/src/franka_logistics_msgs/CMakeLists.txt 파일 수정
 
 === Phase 02 ===
 @ 생성
+1. ROOT_PATH/ros2_ws/src 폴더에 'franka_logistics_description' ROS2 패키지 생성
+2. ROOT_PATH/ros2_ws/src/franka_logistics_description/mjcf/assets 폴더 생성 및 ROOT_PATH/model_ori/franka_emika_panda/assets 폴더 복사
+3. ROOT_PATH/ros2_ws/src/franka_logistics_description/meshes 폴더 생성
+4. ROOT_PATH/ros2_ws/src/franka_logistics_description/mjcf/scene_dual_panda_logistics.xml 파일 생성
+
+@ 수정
+1. ROOT_PATH/ros2_ws/src/franka_logistics_description/package.xml 파일 수정
+2. ROOT_PATH/ros2_ws/src/franka_logistics_description/CMakeLists.txt 파일 수정

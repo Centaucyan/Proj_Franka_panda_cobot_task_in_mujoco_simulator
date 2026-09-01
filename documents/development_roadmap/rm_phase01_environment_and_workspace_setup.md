@@ -73,7 +73,8 @@ Proj_Franka_panda_cobot_task_in_ros2_and_mujoco_simulator/
 ├── ros2_ws/                         # [Step 2] ROS2 워크스페이스
 │     └── src/
 │          └── franka_logistics_msgs/   # [Step 3] 커스텀 인터페이스 패키지
-└── test_phase01_env.py              # [Step 5] 통합 환경 검증 스크립트
+└── test/
+      └── phase01_test_env.py              # [Step 5] 통합 환경 검증 스크립트
 ```
 
 ---
@@ -284,9 +285,9 @@ source install/setup.bash
 
 ### 🔹 Step 5: 종합 환경 자가진단 스크립트 작성 및 실행
 
-프로젝트 루트에 `test_phase01_env.py` 스크립트를 작성하여 모든 라이브러리가 정상적으로 동작하는지 점검합니다.
+`test/phase01_test_env.py` 스크립트를 작성하여 모든 라이브러리가 정상적으로 동작하는지 점검합니다.
 
-#### 1) `test_phase01_env.py` 파일 작성
+#### 1) `test/phase01_test_env.py` 파일 작성
 ```python
 #!/usr/bin/env python3
 """
@@ -376,7 +377,7 @@ if __name__ == "__main__":
 
 #### 2) 자가진단 스크립트 실행
 ```bash
-python test_phase01_env.py
+python phase01_test_env.py
 ```
 
 모든 항목에 `✅` 마크와 함께 최종 축하 메시지가 출력되면 환경 구성이 완료된 것입니다.
@@ -398,7 +399,7 @@ python test_phase01_env.py
 * **해결법**:
   ```bash
   source /opt/ros/humble/setup.bash
-  python test_phase01_env.py
+  python phase01_test_env.py
   ```
 
 ### Q3. 매번 터미널을 열 때마다 source 명령어를 치기 번거롭습니다.
@@ -424,7 +425,7 @@ python test_phase01_env.py
 - [ ] `environment.yaml`을 통해 `ros2_mujoco_panda_py3_10` Conda 가상환경이 정상 생성되었는가?
 - [ ] `ros2_ws/src/franka_logistics_msgs` 패키지가 생성되고 `package.xml`, `CMakeLists.txt`가 설정되었는가?
 - [ ] `colcon build --packages-select franka_logistics_msgs`가 에러 없이 성공(Finished)하는가?
-- [ ] `test_phase01_env.py` 실행 시 7개 진단 항목이 모두 통과(Pass)하는가?
+- [ ] `phase01_test_env.py` 실행 시 7개 진단 항목이 모두 통과(Pass)하는가?
 
 ---
 
