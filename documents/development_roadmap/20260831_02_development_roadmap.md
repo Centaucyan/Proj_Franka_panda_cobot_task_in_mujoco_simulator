@@ -123,7 +123,7 @@ Proj_Franka_panda_cobot_task_in_ros2_and_mujoco_simulator/
 | 단계 (Phase) | 마일스톤 명칭 | 신규 생성 패키지 & 인터페이스 | 상세 실습 가이드 & 주요 산출물 | 예상 기간 |
 | :--- | :--- | :--- | :--- | :---: |
 | **Phase 01** | 가상환경 구축 & ROS2 기본 환경 준비 | `franka_logistics_msgs` (패키지 뼈대) | • [rm_phase01_environment_and_workspace_setup.md](./rm_phase01_environment_and_workspace_setup.md)<br>• `environment.yaml` (Python 3.10) | 1~2일 |
-| **Phase 02** | MuJoCo 3.6.x 3D 가상 씬 및 물류 환경 모델링 | `franka_logistics_description` | • `rm_phase02_mujoco_scene_modeling.md`<br>• `scene_dual_panda_logistics.xml` (로봇 2대, 작업대, 적재함 6개, 컨베이어 2개, 물류 6종) | 2~3일 |
+| **Phase 02** | MuJoCo 3.6.x 3D 가상 씬 및 물류 환경 모델링 | `franka_logistics_description` | • [rm_phase02_mujoco_scene_modeling.md](./rm_phase02_mujoco_scene_modeling.md)<br>• `scene_dual_panda_logistics.xml` (로봇 2대, 작업대, 적재함 6개, 컨베이어 2개, 물류 6종) | 2~3일 |
 | **Phase 03** | MuJoCo ↔ ROS2 Sim Bridge 노드 구현 | `franka_logistics_sim` | • `rm_phase03_ros2_sim_bridge_node.md`<br>• `simulation_bridge_node` (1kHz 물리 루프, JointState, Camera, LiDAR 퍼블리셔) | 3~4일 |
 | **Phase 04** | 로봇 기구학, 궤적 생성 & P&P Action 서버 | `franka_logistics_control`<br>➕ `SortItem.action` | • `rm_phase04_kinematics_and_sort_item_action.md`<br>• DLS IK 솔버, 5차 다항식 궤적 생성기, `SortItem.action` 서버/클라이언트 | 3~4일 |
 | **Phase 05** | 비전 분류, 적재함 3D 차지율 스캔 & 컨베이어 | `franka_logistics_vision`<br>➕ `BinStatus.msg`, `BinStatusArray.msg` | • `rm_phase05_vision_and_bin_occupancy.md`<br>• Wrist Depth 물류 검출 노드, **적재함 3D 차지율 계산 노드**, 컨베이어 구동 노드 | 3~4일 |
@@ -154,7 +154,7 @@ Proj_Franka_panda_cobot_task_in_ros2_and_mujoco_simulator/
 ---
 
 ### 📌 Phase 02: MuJoCo 3.6.x 3D 가상 씬 및 물류 환경 모델링
-* **실습 가이드**: `rm_phase02_mujoco_scene_modeling.md` (작성 예정)
+* **실습 가이드**: [rm_phase02_mujoco_scene_modeling.md](./rm_phase02_mujoco_scene_modeling.md)
 * **목표**: PRD 작업 공간 레이아웃 명세를 충족하는 설명 패키지(`franka_logistics_description`)를 생성하고, 통합 MJCF 가상 씬(`scene_dual_panda_logistics.xml`) 완성.
 * **신규 패키지**: `franka_logistics_description` (`ament_cmake` 또는 `ament_python`)
 * **세부 작업**:

@@ -3,3 +3,6 @@
 1. Proj_Franka_panda_cobot_task_in_ros2_and_mujoco_simulator/environment.yaml 생성
 2. Proj_Franka_panda_cobot_task_in_ros2_and_mujoco_simulator/ros2_ws/src 폴더 생성
 3. Proj_Franka_panda_cobot_task_in_ros2_and_mujoco_simulator/ros2_ws/src 폴더에 'franka_logistics_msgs' ROS2 패키지 생성
+
+=== Phase 02 ===
+@ 생성
