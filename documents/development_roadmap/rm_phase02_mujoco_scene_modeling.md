@@ -18,9 +18,9 @@
                         [ 상단 작업자 이동 구역 / LiDAR Top ]  
                                                 (Robot 2 불가품)
 ┌────────────────┐           ┌──────────────────┐           ┌───────────────┐
-│ 적재함 1 (A-R)  │           │                  │           │ 적재함 4 (A-G) │
+│ 적재함 1 (A-R)  │           │                  │           │ 적재함 4 (A-G)  │
 ├────────────────┤           │                  │           ├───────────────┤
-│ 적재함 2 (B-B)  │  (로봇 1)  |  중앙 물류 작업대  |  (로봇 2)  │ 적재함 5 (B-R) │
+│ 적재함 2 (B-B)  │  (로봇 1)  |  중앙 물류 작업대   |  (로봇 2)  │ 적재함 5 (B-R) │
 ├────────────────┤ (Robot 1) |  [공유 작업 영역]  | (Robot 2) ├───────────────┤
 │ 적재함 3 (C-G)  │           │                  │           │ 적재함 6 (C-B) │
 └────────────────┘           └──────────────────┘           └───────────────┘
@@ -445,20 +445,28 @@ cp -r ../../../model/franka_emika_panda/assets/* mjcf/assets/
     <!-- 바닥 평면 -->
     <geom name="floor" size="3 3 0.05" type="plane" material="groundplane"/>
 
-    <!-- 1. 중앙 물류 분류 작업대 (1.2m x 0.8m x 0.75m) -->
+    <!-- 1. 중앙 물류 분류 작업대 (2.8m x 0.9m x 0.75m) -->
     <body name="sorting_table" pos="0 0 0.375">
-      <geom name="table_top" type="box" size="0.6 0.4 0.025" pos="0 0 0.35" material="table_top_mat"/>
-      <geom name="table_leg1" type="cylinder" size="0.03 0.35" pos="0.55 0.35 0" material="table_mat"/>
-      <geom name="table_leg2" type="cylinder" size="0.03 0.35" pos="-0.55 0.35 0" material="table_mat"/>
-      <geom name="table_leg3" type="cylinder" size="0.03 0.35" pos="0.55 -0.35 0" material="table_mat"/>
-      <geom name="table_leg4" type="cylinder" size="0.03 0.35" pos="-0.55 -0.35 0" material="table_mat"/>
+      <geom name="table_top" type="box" size="1.4 0.45 0.025" pos="0 0 0.35" material="table_top_mat"/>
+      <geom name="table_top_lib1" type="box" size="0.015 0.45 0.04" pos="0.3 0 0.4" material="table_top_mat"/>
+      <geom name="table_top_lib2" type="box" size="0.015 0.45 0.04" pos="-0.3 0 0.4" material="table_top_mat"/>
+      <geom name="table_top_lib3" type="box" size="0.3 0.015 0.04" pos="0 0.435 0.4" material="table_top_mat"/>
+      <geom name="table_top_lib4" type="box" size="0.3 0.015 0.04" pos="0 -0.435 0.4" material="table_top_mat"/>
+      <geom name="table_leg1" type="cylinder" size="0.05 0.35" pos="0.45 0.35 0" material="table_mat"/>
+      <geom name="table_leg2" type="cylinder" size="0.05 0.35" pos="-0.45 0.35 0" material="table_mat"/>
+      <geom name="table_leg3" type="cylinder" size="0.05 0.35" pos="0.45 -0.35 0" material="table_mat"/>
+      <geom name="table_leg4" type="cylinder" size="0.05 0.35" pos="-0.45 -0.35 0" material="table_mat"/>
+      <geom name="table_leg5" type="cylinder" size="0.05 0.35" pos="1.25 0.35 0" material="table_mat"/>
+      <geom name="table_leg6" type="cylinder" size="0.05 0.35" pos="-1.25 0.35 0" material="table_mat"/>
+      <geom name="table_leg7" type="cylinder" size="0.05 0.35" pos="1.25 -0.35 0" material="table_mat"/>
+      <geom name="table_leg8" type="cylinder" size="0.05 0.35" pos="-1.25 -0.35 0" material="table_mat"/>
       <!-- 공유 작업 영역 경계 시각화 사이트 -->
       <site name="shared_workspace_center" pos="0 0 0.376" size="0.25 0.35 0.001" type="box" rgba="0 1 1 0.15"/>
     </body>
 
     <!-- 2. 적재함 6개소 (좌측 3개: Robot 1 / 우측 3개: Robot 2) -->
     <!-- [좌측] 적재함 1: Bin A-Red -->
-    <body name="bin_A_Red" pos="-1.05 0.28 0.75">
+    <body name="bin_A_Red" pos="-1.25 0.28 0.75">
       <geom type="box" size="0.15 0.125 0.01" pos="0 0 0" material="mat_item_red"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 0.12 0.08" material="bin_wall_mat"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 -0.12 0.08" material="bin_wall_mat"/>
@@ -467,7 +475,7 @@ cp -r ../../../model/franka_emika_panda/assets/* mjcf/assets/
       <site name="site_bin_A_Red" pos="0 0 0.08" size="0.14 0.11 0.07" type="box" rgba="1 0 0 0.05"/>
     </body>
     <!-- [좌측] 적재함 2: Bin B-Blue -->
-    <body name="bin_B_Blue" pos="-1.05 0.0 0.75">
+    <body name="bin_B_Blue" pos="-1.25 0.0 0.75">
       <geom type="box" size="0.15 0.125 0.01" pos="0 0 0" material="mat_item_blue"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 0.12 0.08" material="bin_wall_mat"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 -0.12 0.08" material="bin_wall_mat"/>
@@ -476,7 +484,7 @@ cp -r ../../../model/franka_emika_panda/assets/* mjcf/assets/
       <site name="site_bin_B_Blue" pos="0 0 0.08" size="0.14 0.11 0.07" type="box" rgba="0 0 1 0.05"/>
     </body>
     <!-- [좌측] 적재함 3: Bin C-Green -->
-    <body name="bin_C_Green" pos="-1.05 -0.28 0.75">
+    <body name="bin_C_Green" pos="-1.25 -0.28 0.75">
       <geom type="box" size="0.15 0.125 0.01" pos="0 0 0" material="mat_item_green"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 0.12 0.08" material="bin_wall_mat"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 -0.12 0.08" material="bin_wall_mat"/>
@@ -486,7 +494,7 @@ cp -r ../../../model/franka_emika_panda/assets/* mjcf/assets/
     </body>
 
     <!-- [우측] 적재함 4: Bin A-Green -->
-    <body name="bin_A_Green" pos="1.05 0.28 0.75">
+    <body name="bin_A_Green" pos="1.25 0.28 0.75">
       <geom type="box" size="0.15 0.125 0.01" pos="0 0 0" material="mat_item_green"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 0.12 0.08" material="bin_wall_mat"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 -0.12 0.08" material="bin_wall_mat"/>
@@ -495,7 +503,7 @@ cp -r ../../../model/franka_emika_panda/assets/* mjcf/assets/
       <site name="site_bin_A_Green" pos="0 0 0.08" size="0.14 0.11 0.07" type="box" rgba="0 1 0 0.05"/>
     </body>
     <!-- [우측] 적재함 5: Bin B-Red -->
-    <body name="bin_B_Red" pos="1.05 0.0 0.75">
+    <body name="bin_B_Red" pos="1.25 0.0 0.75">
       <geom type="box" size="0.15 0.125 0.01" pos="0 0 0" material="mat_item_red"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 0.12 0.08" material="bin_wall_mat"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 -0.12 0.08" material="bin_wall_mat"/>
@@ -504,7 +512,7 @@ cp -r ../../../model/franka_emika_panda/assets/* mjcf/assets/
       <site name="site_bin_B_Red" pos="0 0 0.08" size="0.14 0.11 0.07" type="box" rgba="1 0 0 0.05"/>
     </body>
     <!-- [우측] 적재함 6: Bin C-Blue -->
-    <body name="bin_C_Blue" pos="1.05 -0.28 0.75">
+    <body name="bin_C_Blue" pos="1.25 -0.28 0.75">
       <geom type="box" size="0.15 0.125 0.01" pos="0 0 0" material="mat_item_blue"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 0.12 0.08" material="bin_wall_mat"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 -0.12 0.08" material="bin_wall_mat"/>
@@ -550,21 +558,21 @@ cp -r ../../../model/franka_emika_panda/assets/* mjcf/assets/
 
       <body name="r1_link1" pos="0 0 0.333">
         <inertial mass="4.970684" pos="0.003875 0.002081 -0.04762"
-          fullinertia="0.70337 0.70661 0.0091170 -0.000139 0.06772 0.019169"/>
+          fullinertia="0.70337 0.70661 0.0091170 -0.00013900 0.0067720 0.019169"/>
         <joint name="r1_joint1"/>
         <geom mesh="link1" material="white" class="visual"/>
         <geom mesh="link1_c" class="collision"/>
 
-        <body name="r1_link2" quat="0.707107 -0.707107 0 0">
+        <body name="r1_link2" quat="1 -1 0 0">
           <inertial mass="0.646926" pos="-0.003141 -0.02872 0.003495"
-            fullinertia="0.0079620 0.028350 0.028403 -0.003925 0.001024 -0.000803"/>
+            fullinertia="0.0079620 2.8110e-2 2.5995e-2 -3.925e-3 1.0254e-2 7.04e-4"/>
           <joint name="r1_joint2" range="-1.7628 1.7628"/>
           <geom mesh="link2" material="white" class="visual"/>
           <geom mesh="link2_c" class="collision"/>
 
-          <body name="r1_link3" pos="0 -0.316 0" quat="0.707107 0.707107 0 0">
-            <inertial mass="3.228604" pos="0.027518 0.039252 -0.066502"
-              fullinertia="0.037242 0.036155 0.01083 -0.004761 -0.011396 -0.012805"/>
+          <body name="r1_link3" pos="0 -0.316 0" quat="1 1 0 0">
+            <inertial mass="3.228604" pos="2.7518e-2 3.9252e-2 -6.6502e-2"
+              fullinertia="3.7242e-2 3.6155e-2 1.083e-2 -4.761e-3 -1.1396e-2 -1.2805e-2"/>
             <joint name="r1_joint3"/>
             <geom mesh="link3_0" material="white" class="visual"/>
             <geom mesh="link3_1" material="white" class="visual"/>
@@ -572,9 +580,9 @@ cp -r ../../../model/franka_emika_panda/assets/* mjcf/assets/
             <geom mesh="link3_3" material="black" class="visual"/>
             <geom mesh="link3_c" class="collision"/>
 
-            <body name="r1_link4" pos="0.0825 0 0" quat="0.707107 0.707107 0 0">
-              <inertial mass="3.587895" pos="-0.05317 0.104419 0.027454"
-                fullinertia="0.025853 0.019552 0.028323 0.007796 -0.001332 0.008641"/>
+            <body name="r1_link4" pos="0.0825 0 0" quat="1 1 0 0">
+              <inertial mass="3.587895" pos="-5.317e-2 1.04419e-1 2.7454e-2"
+                fullinertia="2.5853e-2 1.9552e-2 2.8323e-2 7.796e-3 -1.332e-3 8.641e-3"/>
               <joint name="r1_joint4" range="-3.0718 -0.0698"/>
               <geom mesh="link4_0" material="white" class="visual"/>
               <geom mesh="link4_1" material="white" class="visual"/>
@@ -582,9 +590,9 @@ cp -r ../../../model/franka_emika_panda/assets/* mjcf/assets/
               <geom mesh="link4_3" material="white" class="visual"/>
               <geom mesh="link4_c" class="collision"/>
 
-              <body name="r1_link5" pos="-0.0825 0.384 0" quat="0.707107 -0.707107 0 0">
-                <inertial mass="1.225946" pos="-0.011953 0.041065 -0.038437"
-                  fullinertia="0.035549 0.029474 0.008627 -0.002117 -0.004037 0.00229"/>
+              <body name="r1_link5" pos="-0.0825 0.384 0" quat="1 -1 0 0">
+                <inertial mass="1.225946" pos="-1.1953e-2 4.1065e-2 -3.8437e-2"
+                  fullinertia="3.5549e-2 2.9474e-2 8.627e-3 -2.117e-3 -4.037e-3 2.29e-4"/>
                 <joint name="r1_joint5"/>
                 <geom mesh="link5_0" material="black" class="visual"/>
                 <geom mesh="link5_1" material="white" class="visual"/>
@@ -593,9 +601,9 @@ cp -r ../../../model/franka_emika_panda/assets/* mjcf/assets/
                 <geom mesh="link5_c1" class="collision"/>
                 <geom mesh="link5_c2" class="collision"/>
 
-                <body name="r1_link6" quat="0.707107 0.707107 0 0">
-                  <inertial mass="1.666555" pos="0.060149 -0.014117 -0.010517"
-                    fullinertia="0.001964 0.004354 0.005433 0.000109 -0.001158 -0.000341"/>
+                <body name="r1_link6" quat="1 1 0 0">
+                  <inertial mass="1.666555" pos="6.0149e-2 -1.4117e-2 -1.0517e-2"
+                    fullinertia="1.964e-3 4.354e-3 5.433e-3 1.09e-4 -1.158e-3 3.41e-4"/>
                   <joint name="r1_joint6" range="-0.0175 3.7525"/>
                   <geom mesh="link6_0" material="off_white" class="visual"/>
                   <geom mesh="link6_1" material="white" class="visual"/>
@@ -616,9 +624,9 @@ cp -r ../../../model/franka_emika_panda/assets/* mjcf/assets/
                   <geom mesh="link6_16" material="white" class="visual"/>
                   <geom mesh="link6_c" class="collision"/>
 
-                  <body name="r1_link7" pos="0.088 0 0" quat="0.707107 0.707107 0 0">
-                    <inertial mass="0.735522" pos="0.010517 -0.004252 0.061597"
-                      fullinertia="0.012516 0.010027 0.004815 -0.000428 -0.001196 -0.000741"/>
+                  <body name="r1_link7" pos="0.088 0 0" quat="1 1 0 0">
+                    <inertial mass="7.35522e-01" pos="1.0517e-2 -4.252e-3 6.1597e-2"
+                      fullinertia="1.2516e-2 1.0027e-2 4.815e-3 -4.28e-4 -1.196e-3 -7.41e-4"/>
                     <joint name="r1_joint7"/>
                     <geom mesh="link7_0" material="white" class="visual"/>
                     <geom mesh="link7_1" material="black" class="visual"/>

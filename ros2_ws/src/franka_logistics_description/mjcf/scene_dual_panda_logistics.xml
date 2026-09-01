@@ -165,20 +165,28 @@
     <!-- 바닥 평면 -->
     <geom name="floor" size="3 3 0.05" type="plane" material="groundplane"/>
 
-    <!-- 1. 중앙 물류 분류 작업대 (1.2m x 0.8m x 0.75m) -->
+    <!-- 1. 중앙 물류 분류 작업대 (2.8m x 0.9m x 0.75m) -->
     <body name="sorting_table" pos="0 0 0.375">
-      <geom name="table_top" type="box" size="0.6 0.4 0.025" pos="0 0 0.35" material="table_top_mat"/>
-      <geom name="table_leg1" type="cylinder" size="0.03 0.35" pos="0.55 0.35 0" material="table_mat"/>
-      <geom name="table_leg2" type="cylinder" size="0.03 0.35" pos="-0.55 0.35 0" material="table_mat"/>
-      <geom name="table_leg3" type="cylinder" size="0.03 0.35" pos="0.55 -0.35 0" material="table_mat"/>
-      <geom name="table_leg4" type="cylinder" size="0.03 0.35" pos="-0.55 -0.35 0" material="table_mat"/>
+      <geom name="table_top" type="box" size="1.4 0.45 0.025" pos="0 0 0.35" material="table_top_mat"/>
+      <geom name="table_top_lib1" type="box" size="0.015 0.45 0.04" pos="0.3 0 0.4" material="table_top_mat"/>
+      <geom name="table_top_lib2" type="box" size="0.015 0.45 0.04" pos="-0.3 0 0.4" material="table_top_mat"/>
+      <geom name="table_top_lib3" type="box" size="0.3 0.015 0.04" pos="0 0.435 0.4" material="table_top_mat"/>
+      <geom name="table_top_lib4" type="box" size="0.3 0.015 0.04" pos="0 -0.435 0.4" material="table_top_mat"/>
+      <geom name="table_leg1" type="cylinder" size="0.05 0.35" pos="0.45 0.35 0" material="table_mat"/>
+      <geom name="table_leg2" type="cylinder" size="0.05 0.35" pos="-0.45 0.35 0" material="table_mat"/>
+      <geom name="table_leg3" type="cylinder" size="0.05 0.35" pos="0.45 -0.35 0" material="table_mat"/>
+      <geom name="table_leg4" type="cylinder" size="0.05 0.35" pos="-0.45 -0.35 0" material="table_mat"/>
+      <geom name="table_leg5" type="cylinder" size="0.05 0.35" pos="1.25 0.35 0" material="table_mat"/>
+      <geom name="table_leg6" type="cylinder" size="0.05 0.35" pos="-1.25 0.35 0" material="table_mat"/>
+      <geom name="table_leg7" type="cylinder" size="0.05 0.35" pos="1.25 -0.35 0" material="table_mat"/>
+      <geom name="table_leg8" type="cylinder" size="0.05 0.35" pos="-1.25 -0.35 0" material="table_mat"/>
       <!-- 공유 작업 영역 경계 시각화 사이트 -->
       <site name="shared_workspace_center" pos="0 0 0.376" size="0.25 0.35 0.001" type="box" rgba="0 1 1 0.15"/>
     </body>
 
     <!-- 2. 적재함 6개소 (좌측 3개: Robot 1 / 우측 3개: Robot 2) -->
     <!-- [좌측] 적재함 1: Bin A-Red -->
-    <body name="bin_A_Red" pos="-1.05 0.28 0.75">
+    <body name="bin_A_Red" pos="-1.25 0.28 0.75">
       <geom type="box" size="0.15 0.125 0.01" pos="0 0 0" material="mat_item_red"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 0.12 0.08" material="bin_wall_mat"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 -0.12 0.08" material="bin_wall_mat"/>
@@ -187,7 +195,7 @@
       <site name="site_bin_A_Red" pos="0 0 0.08" size="0.14 0.11 0.07" type="box" rgba="1 0 0 0.05"/>
     </body>
     <!-- [좌측] 적재함 2: Bin B-Blue -->
-    <body name="bin_B_Blue" pos="-1.05 0.0 0.75">
+    <body name="bin_B_Blue" pos="-1.25 0.0 0.75">
       <geom type="box" size="0.15 0.125 0.01" pos="0 0 0" material="mat_item_blue"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 0.12 0.08" material="bin_wall_mat"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 -0.12 0.08" material="bin_wall_mat"/>
@@ -196,7 +204,7 @@
       <site name="site_bin_B_Blue" pos="0 0 0.08" size="0.14 0.11 0.07" type="box" rgba="0 0 1 0.05"/>
     </body>
     <!-- [좌측] 적재함 3: Bin C-Green -->
-    <body name="bin_C_Green" pos="-1.05 -0.28 0.75">
+    <body name="bin_C_Green" pos="-1.25 -0.28 0.75">
       <geom type="box" size="0.15 0.125 0.01" pos="0 0 0" material="mat_item_green"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 0.12 0.08" material="bin_wall_mat"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 -0.12 0.08" material="bin_wall_mat"/>
@@ -206,7 +214,7 @@
     </body>
 
     <!-- [우측] 적재함 4: Bin A-Green -->
-    <body name="bin_A_Green" pos="1.05 0.28 0.75">
+    <body name="bin_A_Green" pos="1.25 0.28 0.75">
       <geom type="box" size="0.15 0.125 0.01" pos="0 0 0" material="mat_item_green"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 0.12 0.08" material="bin_wall_mat"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 -0.12 0.08" material="bin_wall_mat"/>
@@ -215,7 +223,7 @@
       <site name="site_bin_A_Green" pos="0 0 0.08" size="0.14 0.11 0.07" type="box" rgba="0 1 0 0.05"/>
     </body>
     <!-- [우측] 적재함 5: Bin B-Red -->
-    <body name="bin_B_Red" pos="1.05 0.0 0.75">
+    <body name="bin_B_Red" pos="1.25 0.0 0.75">
       <geom type="box" size="0.15 0.125 0.01" pos="0 0 0" material="mat_item_red"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 0.12 0.08" material="bin_wall_mat"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 -0.12 0.08" material="bin_wall_mat"/>
@@ -224,7 +232,7 @@
       <site name="site_bin_B_Red" pos="0 0 0.08" size="0.14 0.11 0.07" type="box" rgba="1 0 0 0.05"/>
     </body>
     <!-- [우측] 적재함 6: Bin C-Blue -->
-    <body name="bin_C_Blue" pos="1.05 -0.28 0.75">
+    <body name="bin_C_Blue" pos="1.25 -0.28 0.75">
       <geom type="box" size="0.15 0.125 0.01" pos="0 0 0" material="mat_item_blue"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 0.12 0.08" material="bin_wall_mat"/>
       <geom type="box" size="0.15 0.005 0.08" pos="0 -0.12 0.08" material="bin_wall_mat"/>
