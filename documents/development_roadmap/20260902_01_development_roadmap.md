@@ -2,7 +2,7 @@
 
 * **문서 번호**: ROADMAP-LOGISTICS-20260902-01-ROS2
 * **작성일**: 2026-09-02
-* **버전**: v3.0.0
+* **버전**: v3.1.0
 * **개발 및 운용 환경**: 
   * **OS**: **Ubuntu 22.04 LTS (x86_64)**
   * **ROS 2**: **ROS2 Humble Hawksbill**
@@ -18,7 +18,7 @@
 ### 1.1 프로젝트 목표
 * **Ubuntu 22.04 + ROS2 Humble + Miniconda (`ros2_mujoco_panda_py3_10`, Python 3.10)** 환경에서 2대의 Franka Emika Panda 협동로봇과 작업자가 협업하는 스마트 물류 분류(Sorting) 시뮬레이션 시스템 구축
 * **MuJoCo 3.6.x 물리 엔진**의 1kHz 고속 정밀 동역학과 ROS2의 분산 비동기 노드 프레임워크(DDS) 결합
-* **Sim Bridge 노드**를 통한 MuJoCo-ROS2 간 완벽한 하드웨어 추상화 및 가상 센서/액추에이터 파이프라인 수립
+* **Sim Bridge 노드**를 통한 MuJoCo-ROS2 간 완벽한 하드웨어 추상화 및 가상 센서/액추캐이터 파이프라인 수립
 * Wrist Depth 카메라 기반 다품종 물류(A/B/C 타입, 색상별) 인식 및 Place 직후 **적재함 3D Depth 스캔 점유율(%) 산출**
 * **공유 작업 영역(Shared Workspace) 선점 우선순위(FCFS) 및 듀얼 로봇 충돌 방지/회피**
 * 2D-LiDAR 2기 기반 작업자 접근 감속/정지 (ISO/TS 15066 SSM)
@@ -67,8 +67,8 @@ Proj_Franka_panda_cobot_task_in_ros2_and_mujoco_simulator/
 ├── test/
 │   ├── phase01_test_env.py
 │   ├── phase02_test_scene.py
-│   ├── phase03_explore_data.py         # [Phase 03 추가] MuJoCo 원시 데이터 I/O 탐색
-│   └── phase03_single_pnp.py           # [Phase 03 추가] 단일 로봇 스탠드얼론 P&P 테스트
+│   ├── phase03_explore_data.py         # [Phase 03] MuJoCo 원시 데이터 I/O 탐색
+│   └── phase03_pnp_prototype.py        # [Phase 03] R1 단독 -> R2 단독 -> 동시 P&P 프로토타입
 └── ros2_ws/src/
     ├── franka_logistics_msgs/          # [Phase 01 패키지 생성, Phase 05~08 순차 인터페이스 추가]
     │   ├── action/
@@ -131,7 +131,7 @@ Proj_Franka_panda_cobot_task_in_ros2_and_mujoco_simulator/
 | :--- | :--- | :--- | :--- | :---: |
 | **Phase 01** | 가상환경 구축 & ROS2 기본 환경 준비 | `franka_logistics_msgs` (패키지 뼈대) | • [rm_phase01_environment_and_workspace_setup.md](./rm_phase01_environment_and_workspace_setup.md)<br>• `environment.yaml` (Python 3.10) | 1~2일 |
 | **Phase 02** | MuJoCo 3.6.x 3D 가상 씬 및 물류 환경 모델링 | `franka_logistics_description` | • [rm_phase02_mujoco_scene_modeling.md](./rm_phase02_mujoco_scene_modeling.md)<br>• `scene_dual_panda_logistics.xml` (로봇 2대, 작업대, 적재함 6개, 컨베이어 2개, 물류 7종) | 2~3일 |
-| **Phase 03** | **MuJoCo Python API 데이터 탐색 & 단일 로봇 P&P 프로토타이핑** | 스탠드얼론 프로토타입 스크립트 | • `rm_phase03_mujoco_data_and_single_pnp.md`<br>• `test/phase03_explore_data.py`<br>• `test/phase03_single_pnp.py` (단일 P&P 성공) | 2~3일 |
+| **Phase 03** | **MuJoCo API 탐색 & 단계별 P&P 프로토타이핑<br>(R1 단독 $\rightarrow$ R2 단독 $\rightarrow$ 듀얼 동시 구동)** | 스탠드얼론 프로토타입 스크립트 | • `rm_phase03_mujoco_data_and_pnp_prototype.md`<br>• `test/phase03_explore_data.py`<br>• `test/phase03_pnp_prototype.py` (R1/R2 단독 & 동시 실행) | 2~3일 |
 | **Phase 04** | **MuJoCo ↔ ROS2 Sim Bridge 노드 구현** | `franka_logistics_sim` | • `rm_phase04_ros2_sim_bridge_node.md`<br>• `simulation_bridge_node` (1kHz 물리 루프, JointState, Camera, LiDAR 퍼블리셔) | 3~4일 |
 | **Phase 05** | **로봇 기구학, 궤적 생성 & P&P Action 서버** | `franka_logistics_control`<br>➕ `SortItem.action` | • `rm_phase05_kinematics_and_sort_item_action.md`<br>• DLS IK 솔버, 5차 다항식 궤적 생성기, `SortItem.action` 서버/클라이언트 | 3~4일 |
 | **Phase 06** | **비전 분류, 적재함 3D 차지율 스캔 & 컨베이어 배출** | `franka_logistics_vision`<br>➕ `BinStatus.msg`, `BinStatusArray.msg` | • `rm_phase06_vision_and_bin_occupancy.md`<br>• Wrist Depth 물류 검출 노드, **적재함 3D 차지율 계산 노드**, 컨베이어 구동 노드 | 3~4일 |
@@ -179,21 +179,23 @@ Proj_Franka_panda_cobot_task_in_ros2_and_mujoco_simulator/
 
 ---
 
-### 📌 Phase 03: MuJoCo Python API 데이터 탐색 & 단일 로봇 P&P 프로토타이핑
-* **실습 가이드**: `rm_phase03_mujoco_data_and_single_pnp.md`
-* **목표**: ROS2 패키징 이전에, MuJoCo 물리 엔진이 제공하는 원시(Raw) 데이터 구조를 심층 분석하고, 순수 Python으로 로봇 1대가 테이블 위 물품을 집어 적재함에 넣는 1회 사이클을 먼저 성공시킴.
-* **주요 산출물**: `test/phase03_explore_data.py`, `test/phase03_single_pnp.py`
+### 📌 Phase 03: MuJoCo API 탐색 & 단계별 P&P 프로토타이핑 (R1 $\rightarrow$ R2 $\rightarrow$ 동시)
+* **실습 가이드**: `rm_phase03_mujoco_data_and_pnp_prototype.md`
+* **목표**: ROS2 패키징 이전에, MuJoCo 원시 데이터 I/O 구조를 분석하고, **3단계 점진적 P&P 프로토타이핑(로봇1 단독 $\rightarrow$ 로봇2 단독 $\rightarrow$ 듀얼 동시 구동)**을 통해 물리 엔진 상에서의 기구학 및 다중 액추에이터 제어 동작을 사전 검증.
+* **주요 산출물**: `test/phase03_explore_data.py`, `test/phase03_pnp_prototype.py`
 * **세부 작업**:
   1. **MuJoCo 원시 데이터 I/O 분석 (`test/phase03_explore_data.py`)**:
-     * 관절 상태 `data.qpos` (18 DOF), `data.qvel`, 액추에이터 제어 `data.ctrl` (16개) 콘솔 출력 및 구조 확인.
+     * 관절 상태 `data.qpos` (18 DOF), `data.qvel`, 액추에이터 제어 `data.ctrl` (16개) 구조 분석.
      * Wrist 카메라 오프스크린 렌더러 기반 RGB/Depth NumPy 배열(`(480, 640, 3)`) 직접 시각화.
      * `mj_ray()` 레이캐스팅을 통한 거리값 계측 및 충돌 지오메트리 탐색 확인.
   2. **DLS 수치적 역기구학(IK) 기초 구현**:
      * 목표 3D 위치 $(X, Y, Z)$가 주어졌을 때 7개 관절 각도를 도출하는 순수 Python 기구학 기초 함수 작성.
   3. **그리퍼 파지 및 접촉 역학(Contact Dynamics) 튜닝**:
      * 물품 파지 시 미끄러짐/폭발(Explosion) 없는 최적의 그리퍼 제어값(`ctrl=255/0`) 및 마찰력 확인.
-  4. **단일 로봇 Pick & Place 1회 사이클 스탠드얼론 시뮬레이션 (`test/phase03_single_pnp.py`)**:
-     * 물품(`item_A_Red`) 접근 $\rightarrow$ 하강 $\rightarrow$ 파지 $\rightarrow$ 리프팅 $\rightarrow$ 적재함(`bin_A_Red`) 상단 이동 $\rightarrow$ 하강 및 놓기 $\rightarrow$ 홈 복귀를 3D 뷰어로 확인.
+  4. **3단계 점진적 Pick & Place 프로토타입 검증 (`test/phase03_pnp_prototype.py`)**:
+     * **[Step 1] Robot 1 단독 P&P 테스트**: 좌측 로봇이 `item_A_Red`를 집어 `bin_A_Red`에 안착 (Robot 2는 Home 대기).
+     * **[Step 2] Robot 2 단독 P&P 테스트**: 우측 로봇이 `item_A_Green`을 집어 `bin_A_Green`에 안착 (Robot 1은 Home 대기).
+     * **[Step 3] Robot 1 & Robot 2 동시 구동(Concurrent) 테스트**: 두 로봇이 각각의 타겟을 향해 동시에 P&P 동작 수행 *(※ 동시 다중 액추에이터 제어 검증 목적이며, 상호 충돌 회피/선점 조율은 Phase 07에서 FCFS로 구현)*.
 
 ---
 
