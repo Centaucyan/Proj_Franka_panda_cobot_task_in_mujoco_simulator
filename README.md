@@ -3,7 +3,7 @@
 
 ## 1. Description
 * **개요:** MuJoCo 환경 기반 Franka Emika Panda 로봇을 활용한 객체 인식 알고리즘 적용 및 HRC(인간-로봇 협업) 물류 분류 시스템 구현
-* **목표:** MuJoCo 시뮬레이터와 ROS2를 기반으로 Franka Emika Panda 로봇팔을 제어하고, 객체 인식 및 Pick-and-Place 기능의 구현 프로세스 이해
+* **목적:** MuJoCo 시뮬레이터와 ROS2를 기반으로 Franka Emika Panda 로봇팔을 제어하고, 객체 인식 및 Pick-and-Place 기능의 구현 프로세스 이해
 ---
 
 ## 2. 작업 공간
@@ -18,7 +18,7 @@
 
 ## 4. Pre-to-do
 ```bash
-# 1. Conda 가상환경 생성 (약 2~3분 소요)
+# 1. Conda 가상환경 생성 및 필수 패키지 설치 (약 2~3분 소요)
 conda env create -f environment.yaml
 
 # 2. 가상환경 활성화
