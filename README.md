@@ -7,7 +7,7 @@
 ---
 
 ## 2. 작업 공간
-![workspace](./documents/scenario_and_prd/20260831_02_work_space.png)
+![workspace1](./documents/scenario_and_prd/20260831_02_work_space.png) ![workspace2](./documents/scenario_and_prd/20260901_01_work_space.png)
 ---
 
 ## 3. 환경
