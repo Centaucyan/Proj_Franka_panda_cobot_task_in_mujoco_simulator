@@ -20,3 +20,8 @@ ROOT_PATH = Proj_Franka_panda_cobot_task_in_ros2_and_mujoco_simulator
 @ 수정
 1. ROOT_PATH/ros2_ws/src/franka_logistics_description/package.xml 파일 수정
 2. ROOT_PATH/ros2_ws/src/franka_logistics_description/CMakeLists.txt 파일 수정
+
+=== Phase 03 ===
+@ 생성
+1. ROOT_PATH/test/phase03_explore_data.py 파일 생성
+2. ROOT_PATH/test/phase03_pnp_prototype.py 파일 생성

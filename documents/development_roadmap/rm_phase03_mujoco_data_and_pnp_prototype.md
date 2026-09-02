@@ -3,7 +3,7 @@
 * **문서 번호**: GUIDE-LOGISTICS-PHASE-03
 * **관련 마일스톤**: [20260902_01_development_roadmap.md](./20260902_01_development_roadmap.md) - Phase 03
 * **작성일**: 2026-09-02
-* **버전**: v1.0.0
+* **버전**: v1.1.0
 * **작업 환경**: Ubuntu 22.04 LTS (x86_64) / Conda (`ros2_mujoco_panda_py3_10`, Python 3.10) / MuJoCo 3.6.x
 
 ---
@@ -16,21 +16,21 @@
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────┐
-│                           [ Phase 03 점진적 학습 및 검증 흐름 ]                     │
-│                                                                                 │
-│  [1. Raw 데이터 I/O 분석] ──► [2. DLS 역기구학/파지 튜닝] ──► [3. 3단계 P&P 검증]       │
-│   • qpos/qvel (관절각/속도)     • 목표 (X,Y,Z) -> q 도출      • Step 1: R1 단독 P&P  │
-│   • ctrl (액추에이터 제어)       • 그리퍼 마찰력/접촉 안정화      • Step 2: R2 단독 P&P  │
-│   • RGB/Depth (비전 배열)                                   • Step 3: 듀얼 동시구동 │
-│   • mj_ray (LiDAR 광선)                                                         │
+│                           [ Phase 03 점진적 학습 및 검증 흐름 ]                │
+│                                                                                │
+│  [1. Raw 데이터 I/O 분석] ──► [2. DLS 역기구학/파지 튜닝] ──► [3. 3단계 P&P 검증]   │
+│   • qpos/qvel (관절각/속도)      • 목표 (X,Y,Z) -> q 도출        • Step 1: R1 단독 P&P│
+│   • ctrl (액추에이터 제어)       • 그리퍼 마찰력/접촉 안정화     • Step 2: R2 단독 P&P│
+│   • RGB/Depth (비전 배열)       • 부드러운 S-Curve 보간          • Step 3: 듀얼 동시구동│
+│   • mj_ray (LiDAR 광선)                                                        │
 └────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 🎯 핵심 학습 목표
 1. **MuJoCo C-Binding 핵심 데이터 아키텍처 습득**: `mjModel`(정적 제원)과 `mjData`(동적 물리 상태), `qpos`, `qvel`, `ctrl`, `site_xpos`의 메모리 구조와 인덱싱 원리 체득.
-2. **수치적 역기구학(DLS Inverse Kinematics) 원리 구현**: 자코비안 행렬($J$)과 특이점 감쇠 계수($\lambda$)를 이용해 목표 3D 위치를 7-자유도 관절 각도로 실시간 역산하는 알고리즘 이해.
-3. **그리퍼 접촉 역학(Contact Dynamics) 튜닝**: 파지 시 물품 미끄러짐 및 튕겨나감(Explosion) 현상을 방지하는 마찰 계수와 서보 제어값(`ctrl=255/0`) 검증.
-4. **가상 센서 원시 데이터 추출**: 오프스크린 렌더러 기반 RGB/Depth NumPy 배열 및 `mj_ray()` 평면 방사형 레이캐스팅 데이터 획득.
+2. **수치적 역기구학(DLS Inverse Kinematics) 원리 구현**: 자코비안 행렬($J$)과 특이점 감쇠 계수($\lambda$), 관절 리밋 클램핑을 이용해 목표 3D 위치를 7-자유도 관절 각도로 실시간 역산하는 알고리즘 이해.
+3. **부드러운 웨이포인트 궤적 보간(S-Curve Interpolation)**: 급격한 스텝 점프 없이 관절이 부드럽게 목표 지점으로 이동하도록 하는 모션 프로파일 생성.
+4. **그리퍼 접촉 역학(Contact Dynamics) 튜닝**: 파지 시 물품 미끄러짐 및 튕겨나감(Explosion) 현상을 방지하는 마찰 계수와 서보 제어값(`ctrl=255/0`) 검증.
 5. **3단계 점진적 P&P 시뮬레이션 성공**: **[로봇 1 단독] $\rightarrow$ [로봇 2 단독] $\rightarrow$ [듀얼 로봇 동시 구동]**으로 이어지는 단계별 모션 시퀀스를 3D 뷰어로 직접 관찰 및 검증.
 
 ---
@@ -43,90 +43,41 @@ MuJoCo는 성능을 극대화하기 위해 C언어 구조체 기반으로 설계
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           mjModel (정적 모델 제원)                             │
-│  • nq   : 일반화 좌표 총 개수 (자유도 및 쿼터니언 포함, 본 프로젝트: 67)               │
-│  • nv   : 속도 벡터 총 개수 (속도 자유도, 본 프로젝트: 60)                          │
-│  • nu   : 제어 입력 액추에이터 총 개수 (본 프로젝트: 16)                            │
-│  • opt  : 타임스텝(timestep=0.001s), 중력(gravity=0 0 -9.81)                   │
+│                           mjModel (정적 모델 제원)                           │
+│  • nq   : 일반화 좌표 총 개수 (자유도 및 쿼터니언 포함, 본 프로젝트: 67)       │
+│  • nv   : 속도 벡터 총 개수 (속도 자유도, 본 프로젝트: 60)                     │
+│  • nu   : 제어 입력 액추에이터 총 개수 (본 프로젝트: 16)                        │
+│  • opt  : 타임스텝(timestep=0.001s), 중력(gravity=0 0 -9.81)                  │
 └──────────────────────────────────────┬──────────────────────────────────────┘
                                        │ mj_step(model, data) 1kHz 연산
 ┌──────────────────────────────────────▼──────────────────────────────────────┐
-│                           mjData (동적 물리 상태)                              │
-│  • data.qpos : 현재 관절 위치 및 물체 위치/쿼터니언 배열 [67 float64]               │
-│  • data.qvel : 현재 관절 각속도 및 물체 선/각속도 배열 [60 float64]                │
-│  • data.ctrl : 액추에이터 목표 제어 입력 배열 [16 float64]                        │
-│  • data.site_xpos : 씬 내 정의된 모든 사이트의 글로벌 3D 좌표 [nsite x 3]           │
-│  • data.contact   : 현재 활성화된 접촉점 정보 구조체 배열 [ncon개]                  │
+│                           mjData (동적 물리 상태)                            │
+│  • data.qpos : 현재 관절 위치 및 물체 위치/쿼터니언 배열 [67 float64]          │
+│  • data.qvel : 현재 관절 각속도 및 물체 선/각속도 배열 [60 float64]           │
+│  • data.ctrl : 액추에이터 목표 제어 입력 배열 [16 float64]                      │
+│  • data.site_xpos : 씬 내 정의된 모든 사이트의 글로벌 3D 좌표 [nsite x 3]      │
+│  • data.contact   : 현재 활성화된 접촉점 정보 구조체 배열 [ncon개]              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-#### 📌 본 프로젝트 듀얼 판다 씬의 배열 인덱스 맵핑
-* **`data.qpos` (총 67차원)**:
-  * `qpos[0:7]`: Robot 1 암 관절 7개 (`r1_joint1` ~ `r1_joint7`)
-  * `qpos[7:9]`: Robot 1 핑거 슬라이드 관절 2개 (`r1_finger_joint1`, `r1_finger_joint2`)
-  * `qpos[9:16]`: Robot 2 암 관절 7개 (`r2_joint1` ~ `r2_joint7`)
-  * `qpos[16:18]`: Robot 2 핑거 슬라이드 관절 2개 (`r2_finger_joint1`, `r2_finger_joint2`)
-  * `qpos[18:67]`: 물류 물품 7종의 3D 위치(3) + 쿼터니언(4) $\times 7 = 49$개
-* **`data.ctrl` (총 16차원)**:
-  * `ctrl[0:7]`: Robot 1 관절 1~7 목표 각도 ($\text{rad}$)
-  * `ctrl[7]`: Robot 1 그리퍼 텐던 제어 (`0`: 열림, `255`: 닫힘)
-  * `ctrl[8:15]`: Robot 2 관절 1~7 목표 각도 ($\text{rad}$)
-  * `ctrl[15]`: Robot 2 그리퍼 텐던 제어 (`0`: 열림, `255`: 닫힘)
+> [!IMPORTANT]
+> **`mj_forward(model, data)` 호출의 중요성**:
+> `mujoco.mj_resetDataKeyframe()`으로 초기화한 직후에는 사이트 좌표(`site_xpos`)와 바디 위치(`xpos`)가 갱신되지 않아 `(0, 0, 0)`으로 읽힐 수 있습니다. 따라서 위치를 읽거나 IK를 풀기 전에 반드시 `mujoco.mj_forward(model, data)`를 먼저 호출하여 기구학 트리를 계산해야 합니다.
 
 ---
 
-### 2.2 순운동학(FK)과 감쇠 최소자승 역기구학(DLS IK)
+### 2.2 감쇠 최소자승 역기구학(DLS IK)과 관절 한계 클램핑
 
-#### 1) 순운동학 (Forward Kinematics) & 엔드이펙터 자코비안 ($J$)
-로봇의 관절 각도 $q \in \mathbb{R}^7$가 주어졌을 때 엔드이펙터의 3D 공간 위치 $x \in \mathbb{R}^3$를 구하는 매핑을 순운동학이라 합니다:
-$$x = f(q)$$
-
-관절 속도 $\dot{q}$와 엔드이펙터 선속도 $\dot{x}$ 사이의 선형 미분 관계는 **자코비안 행렬 (Jacobian Matrix)** $J(q) = \frac{\partial f(q)}{\partial q} \in \mathbb{R}^{3 \times 7}$로 표현됩니다:
-$$\dot{x} = J(q) \dot{q}$$
-
-MuJoCo에서는 `mujoco.mj_jacSite(model, data, jacp, jacr, site_id)` C API 함수를 통해 현재 자세에서의 자코비안 행렬 $J$를 단 $1\mu\text{s}$ 이내에 즉시 계산합니다.
-
-#### 2) 감쇠 최소자승법 (Damped Least Squares, DLS)
-목표 위치 $x_{\text{target}}$과 현재 위치 $x_{\text{current}}$ 사이의 오차 벡터를 $e = x_{\text{target}} - x_{\text{current}}$라 할 때, 표준 의사역행렬($J^+$)은 로봇이 팔을 완전히 뻗거나 특이점(Singularity) 근처에 도달할 경우 역행렬 연산 시 수치적 발산($\Delta q \to \infty$)을 일으킵니다.
-
-이를 방지하기 위해 **감쇠 계수 $\lambda > 0$**를 도입한 **DLS 수식**을 사용합니다:
+#### 1) 감쇠 최소자승법 (Damped Least Squares, DLS)
+목표 위치 $x_{\text{target}}$과 엔드이펙터 사이트 위치 $x_{\text{current}}$ 사이의 오차 벡터를 $e = x_{\text{target}} - x_{\text{current}}$라 할 때, 감쇠 계수 $\lambda > 0$를 적용한 DLS 업데이트 수식은 다음과 같습니다:
 $$\Delta q = J^T \left( J J^T + \lambda^2 I \right)^{-1} e$$
 
-* 특이점 근처에서 행렬 $\left(J J^T + \lambda^2 I\right)$의 조건수(Condition Number)가 안정화되어 관절의 급격한 회전이나 발산 없이 부드럽게 목표 지점으로 수렴합니다.
+* **독립된 `ik_data` 인스턴스 사용**: 실시간 물리 연산 중인 `data.qpos`를 직접 오염시키지 않도록, IK 연산 전용 가상 데이터 객체를 복사하여 안전하게 계산합니다.
+* **관절 한계(Joint Limits) 준수**: 계산된 각 관절 각도 $q_i$가 XML 모델에 정의된 가동 범위 $[q_{\min}, q_{\max}]$를 벗어나지 않도록 클램핑(`np.clip`)하여 로봇 팔꿈치가 바닥 쪽으로 뒤틀리는 현상을 원천 차단합니다.
 
----
-
-### 2.3 그리퍼 접촉 역학(Contact Dynamics) 및 파지 원리
-
-Franka Panda 로봇 그리퍼는 물체를 단단히 집어 올릴 때 미끄러짐(Slip)이나 접촉 반발로 인한 튕겨나감(Penetration Explosion)이 없어야 합니다.
-
-```text
-       [Left Finger Pad]                   [Right Finger Pad]
-             │                                     │
-             ▼ ───►  [ 물류 블록 (mass=0.1kg) ]  ◄─── ▼
-      Friction=1.5                         Friction=1.5
-      solref=0.005, solimp=0.95            solref=0.005, solimp=0.95
-```
-
-1. **마찰 계수 (`friction="1.5 0.01 0.001"`)**:
-   * 슬라이딩 마찰(1.5), 비틀림 마찰(0.01), 구름 마찰(0.001)을 부여하여 핑거 패드가 물품 표면을 안정적으로 파지.
-2. **접촉 감쇠 솔버 (`solref="0.005 1"`, `solimp="0.95 0.99 0.001"`)**:
-   * 강체 간의 충돌 시 충격량을 완화하는 스프링-댐퍼 모델로, 물체를 쥐는 순간 과도한 반발 탄성력을 억제.
-3. **텐던 연동 (`actuator8`, `ctrl=255`)**:
-   * 단일 액추에이터 명령으로 좌우 핑거가 대칭으로 $4\text{cm}$씩 안쪽으로 닫히며 최대 $100\text{N}$의 파지력을 인가.
-
----
-
-### 2.4 가상 비전 & 2D LiDAR 데이터 추출 원리
-
-#### 1) Wrist Camera 오프스크린 렌더링
-* `mujoco.Renderer(model, height=480, width=640)`를 생성하여 GPU/OpenGL 오프스크린 버퍼에서 렌더링.
-* **RGB 영상**: `renderer.render()` $\rightarrow$ 형태: `(480, 640, 3)`, 자료형: `uint8` (0~255 RGB 픽셀).
-* **Depth 맵**: `renderer.enable_depth_rendering()` $\rightarrow$ 형태: `(480, 640)`, 자료형: `float32` (미터 단위 실제 깊이 거리).
-
-#### 2) 2D Safety LiDAR 레이캐스팅 (`mj_ray`)
-* 상단(`lidar_top_frame`) 및 하단(`lidar_bottom_frame`) 사이트 위치 $P_0 = (x_0, y_0, z_0)$에서 수평 각도 $\theta_i$ 방향으로 단위 벡터 $d_i = (\cos\theta_i, \sin\theta_i, 0)$를 투사.
-* `dist = mujoco.mj_ray(model, data, P_0, d_i, ...)` 함수를 호출하여 가장 먼저 부딪히는 물체 표면까지의 거리($\text{m}$)와 충돌 지오메트리 ID를 추출.
+#### 2) 부드러운 웨이포인트 보간 (S-Curve Interpolation)
+스텝마다 목표 관절각을 계단식으로 급격히 변경하면 모터에 과도한 충격 토크가 가해집니다. 이를 방지하기 위해 코사인 기반 S-Curve 가감속 프로파일을 적용합니다:
+$$s(t) = \frac{1}{2} \left( 1 - \cos\left(\pi \cdot \frac{t}{T_{\text{duration}}}\right) \right), \quad q(t) = (1 - s(t)) q_{\text{start}} + s(t) q_{\text{target}}$$
 
 ---
 
@@ -191,7 +142,7 @@ def explore_mujoco_data():
         model = mujoco.MjModel.from_xml_path(xml_path)
         data = mujoco.MjData(model)
         mujoco.mj_resetDataKeyframe(model, data, 0)
-        mujoco.mj_forward(model, data)
+        mujoco.mj_forward(model, data)  # 기하 트리 갱신
         print(f"✅ MuJoCo MjModel & MjData 로드 완료 (모델명: {model.names.decode('utf-8').split(chr(0))[0]})")
     except ImportError:
         print("❌ 오류: mujoco 모듈을 찾을 수 없습니다. 'conda activate ros2_mujoco_panda_py3_10'을 확인하세요.")
@@ -287,11 +238,9 @@ def explore_mujoco_data():
     try:
         renderer = mujoco.Renderer(model, height=480, width=640)
         
-        # Robot 1 Wrist Camera 렌더링
         renderer.update_scene(data, camera="r1_wrist_camera")
         rgb_img = renderer.render()
         
-        # Depth 맵 렌더링
         renderer.enable_depth_rendering()
         renderer.update_scene(data, camera="r1_wrist_camera")
         depth_img = renderer.render()
@@ -381,13 +330,13 @@ Phase 03 점진적 Pick & Place 프로토타입 검증 스크립트
 ==============================================================================
 [3단계 점진적 테스트 모드]
 1. mode='r1'  : Robot 1 (좌측) 단독 P&P (item_A_Red -> bin_A_Red, Robot 2는 Home 대기)
-2. mode='r2'  : Robot 2 (우측) 단독 P&P (item_A_Green -> bin_A_Green, Robot 1은 Home 대기)
+2. mode='r2'  : Robot 2 (우측) 단독 P&P (item_C_Blue -> bin_C_Blue, Robot 1은 Home 대기)
 3. mode='dual': Robot 1 & Robot 2 동시 구동 P&P (다중 로봇 액추에이터 동시 제어 검증)
 
 [핵심 알고리즘]
-- DLS(Damped Least Squares) 수치적 역기구학(IK)
-- 5단계 웨이포인트 궤적 보간: Approach -> Grasp -> Lift -> Place -> Home
-- 그리퍼 파지력 및 접촉 물리 실시간 시뮬레이션
+- DLS(Damped Least Squares) 수치적 역기구학(IK) + 관절 리밋 클램핑
+- 부드러운 S-Curve 코사인 궤적 보간기
+- 8단계 모션 시퀀서: Approach -> Descend -> Grasp -> Lift -> Transfer -> Place -> Release -> Home
 ==============================================================================
 """
 
@@ -397,45 +346,54 @@ import time
 import argparse
 import numpy as np
 
-# DLS 역기구학 파라미터
-IK_DAMPING = 0.05       # 특이점 감쇠 계수 (lambda)
-IK_MAX_STEPS = 50       # 최대 반복 계산 횟수
-IK_TOLERANCE = 0.003    # 허용 위치 오차 (3mm)
-IK_STEP_SIZE = 0.5      # 스텝 크기 (학습률)
-
-def solve_dls_ik(model, data, site_name, target_pos, arm_joint_indices, arm_qpos_indices):
+def solve_dls_ik(model, site_name, target_pos, current_full_qpos, arm_joint_indices, arm_qpos_indices):
     """
-    Damped Least Squares (DLS) 수치적 역기구학 솔버
-    Delta_q = J^T * (J * J^T + lambda^2 * I)^(-1) * error_pos
+    독립된 MjData 인스턴스를 사용하여 실시간 시뮬레이션 데이터를 오염시키지 않고
+    관절 리밋을 완벽히 준수하는 Damped Least Squares (DLS) IK 솔버
     """
     import mujoco
+    ik_data = mujoco.MjData(model)
+    ik_data.qpos[:] = current_full_qpos.copy()
     site_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, site_name)
+    
+    q_arm = current_full_qpos[arm_qpos_indices].copy()
     jacp = np.zeros((3, model.nv))
     jacr = np.zeros((3, model.nv))
     
-    q_current = data.qpos[arm_qpos_indices].copy()
+    damping = 0.05       # 감쇠 계수 (lambda)
+    step_size = 0.4      # 반복 수렴 학습률
+    tolerance = 0.002    # 수렴 오차 허용치 (2mm)
     
-    for _ in range(IK_MAX_STEPS):
-        mujoco.mj_forward(model, data)
-        current_pos = data.site_xpos[site_id]
+    for _ in range(80):
+        mujoco.mj_forward(model, ik_data)
+        current_pos = ik_data.site_xpos[site_id]
         error = target_pos - current_pos
         
-        if np.linalg.norm(error) < IK_TOLERANCE:
+        if np.linalg.norm(error) < tolerance:
             break
             
-        mujoco.mj_jacSite(model, data, jacp, jacr, site_id)
+        mujoco.mj_jacSite(model, ik_data, jacp, jacr, site_id)
         J = jacp[:, arm_joint_indices]  # (3, 7)
         
-        A = J @ J.T + (IK_DAMPING ** 2) * np.eye(3)
+        # DLS 수식: J^T * (J * J^T + lambda^2 * I)^(-1) * error
+        A = J @ J.T + (damping ** 2) * np.eye(3)
         dq = J.T @ np.linalg.solve(A, error)
         
-        q_current += IK_STEP_SIZE * dq
-        data.qpos[arm_qpos_indices] = q_current
+        q_arm += step_size * dq
         
-    return q_current
+        # 관절 각도 리밋 클램핑 (Joint Limits Clamping)
+        for i, j_idx in enumerate(arm_joint_indices):
+            jnt_id = model.dof_jntid[j_idx]
+            if model.jnt_limited[jnt_id]:
+                q_min, q_max = model.jnt_range[jnt_id]
+                q_arm[i] = np.clip(q_arm[i], q_min, q_max)
+                
+        ik_data.qpos[arm_qpos_indices] = q_arm
+        
+    return q_arm
 
 class RobotController:
-    """단일 로봇 P&P 상태 머신 및 액추에이터 제어기"""
+    """단일 로봇 P&P 상태 머신 및 S-Curve 액추에이터 제어기"""
     def __init__(self, prefix, model, data):
         import mujoco
         self.prefix = prefix
@@ -455,95 +413,109 @@ class RobotController:
             self.arm_nv_idx = list(range(9, 16))
             self.ctrl_idx = list(range(8, 16))
             self.ee_site = "r2_ee_site"
-            self.target_item = "item_A_Green"
-            self.target_bin_site = "site_bin_A_Green"
+            self.target_item = "item_C_Blue"
+            self.target_bin_site = "site_bin_C_Blue"
             self.home_qpos = np.array([0.0, -0.785, 0.0, -2.356, 0.0, 1.571, 0.785])
             
         self.state = "INIT"
-        self.state_timer = 0
+        self.state_timer = 0.0
+        self.state_duration = 1.0
+        
+        self.start_qpos = self.home_qpos.copy()
         self.target_qpos = self.home_qpos.copy()
         self.gripper_ctrl = 0.0  # 0: Open, 255: Close
         
+        # 물품 및 적재함 3D 좌표 탐색 (반드시 mj_forward 이후 좌표 읽기)
         item_bid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, self.target_item)
         bin_sid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, self.target_bin_site)
         
         self.item_pos = data.xpos[item_bid].copy()
         self.bin_pos = data.site_xpos[bin_sid].copy()
 
+    def set_motion(self, next_state, target_3d_pos, duration, gripper=None):
+        self.state = next_state
+        self.state_timer = 0.0
+        self.state_duration = duration
+        self.start_qpos = self.target_qpos.copy()
+        
+        if target_3d_pos is not None:
+            self.target_qpos = solve_dls_ik(
+                self.model, self.ee_site, target_3d_pos, self.data.qpos, self.arm_nv_idx, self.arm_qpos_idx
+            )
+        else:
+            self.target_qpos = self.home_qpos.copy()
+            
+        if gripper is not None:
+            self.gripper_ctrl = gripper
+
     def update(self, dt):
         self.state_timer += dt
         
         if self.state == "INIT":
-            self.target_qpos = self.home_qpos.copy()
-            self.gripper_ctrl = 0.0
             if self.state_timer > 1.0:
-                self.state = "APPROACH"
-                self.state_timer = 0
                 approach_pos = self.item_pos + np.array([0, 0, 0.12])
-                self.target_qpos = solve_dls_ik(self.model, self.data, self.ee_site, approach_pos, self.arm_nv_idx, self.arm_qpos_idx)
                 print(f"[{self.prefix.upper()}] 1단계: 물품 상단 접근 (Approach)")
+                self.set_motion("APPROACH", approach_pos, duration=2.0)
 
         elif self.state == "APPROACH":
-            if self.state_timer > 2.0:
-                self.state = "DESCEND"
-                self.state_timer = 0
+            if self.state_timer >= self.state_duration:
                 grasp_pos = self.item_pos + np.array([0, 0, 0.015])
-                self.target_qpos = solve_dls_ik(self.model, self.data, self.ee_site, grasp_pos, self.arm_nv_idx, self.arm_qpos_idx)
                 print(f"[{self.prefix.upper()}] 2단계: 물품 파지 위치 하강 (Descend)")
+                self.set_motion("DESCEND", grasp_pos, duration=1.2)
 
         elif self.state == "DESCEND":
-            if self.state_timer > 1.5:
-                self.state = "GRASP"
-                self.state_timer = 0
-                self.gripper_ctrl = 255.0  # 그리퍼 닫기 (Close)
+            if self.state_timer >= self.state_duration:
                 print(f"[{self.prefix.upper()}] 3단계: 그리퍼 파지 (Grasp Close)")
+                self.state = "GRASP"
+                self.state_timer = 0.0
+                self.state_duration = 0.8
+                self.gripper_ctrl = 255.0  # 닫기
 
         elif self.state == "GRASP":
-            if self.state_timer > 1.0:
-                self.state = "LIFT"
-                self.state_timer = 0
+            if self.state_timer >= self.state_duration:
                 lift_pos = self.item_pos + np.array([0, 0, 0.18])
-                self.target_qpos = solve_dls_ik(self.model, self.data, self.ee_site, lift_pos, self.arm_nv_idx, self.arm_qpos_idx)
                 print(f"[{self.prefix.upper()}] 4단계: 물품 들어올리기 (Lift)")
+                self.set_motion("LIFT", lift_pos, duration=1.5)
 
         elif self.state == "LIFT":
-            if self.state_timer > 2.0:
-                self.state = "TRANSFER"
-                self.state_timer = 0
+            if self.state_timer >= self.state_duration:
                 transfer_pos = self.bin_pos + np.array([0, 0, 0.15])
-                self.target_qpos = solve_dls_ik(self.model, self.data, self.ee_site, transfer_pos, self.arm_nv_idx, self.arm_qpos_idx)
                 print(f"[{self.prefix.upper()}] 5단계: 적재함 상단 이송 (Transfer to Bin)")
+                self.set_motion("TRANSFER", transfer_pos, duration=2.5)
 
         elif self.state == "TRANSFER":
-            if self.state_timer > 2.5:
-                self.state = "PLACE"
-                self.state_timer = 0
+            if self.state_timer >= self.state_duration:
                 place_pos = self.bin_pos + np.array([0, 0, 0.08])
-                self.target_qpos = solve_dls_ik(self.model, self.data, self.ee_site, place_pos, self.arm_nv_idx, self.arm_qpos_idx)
                 print(f"[{self.prefix.upper()}] 6단계: 적재함 안착 하강 (Place)")
+                self.set_motion("PLACE", place_pos, duration=1.2)
 
         elif self.state == "PLACE":
-            if self.state_timer > 1.5:
-                self.state = "RELEASE"
-                self.state_timer = 0
-                self.gripper_ctrl = 0.0  # 그리퍼 열기 (Open)
+            if self.state_timer >= self.state_duration:
                 print(f"[{self.prefix.upper()}] 7단계: 물품 해제 (Release Open)")
+                self.state = "RELEASE"
+                self.state_timer = 0.0
+                self.state_duration = 0.8
+                self.gripper_ctrl = 0.0  # 열기
 
         elif self.state == "RELEASE":
-            if self.state_timer > 1.0:
-                self.state = "RETRACT"
-                self.state_timer = 0
-                self.target_qpos = self.home_qpos.copy()
+            if self.state_timer >= self.state_duration:
                 print(f"[{self.prefix.upper()}] 8단계: 기본 자세 복귀 (Return Home)")
+                self.set_motion("RETRACT", None, duration=2.5)
 
         elif self.state == "RETRACT":
-            if self.state_timer > 2.5:
+            if self.state_timer >= self.state_duration:
                 self.state = "DONE"
                 print(f"[{self.prefix.upper()}] 🎉 P&P 사이클 완료! (Pick & Place Success)")
 
-        for i, q_target in enumerate(self.target_qpos):
+        # 1kHz S-Curve 부드러운 궤적 보간 (Cosine Interpolation)
+        alpha = min(1.0, self.state_timer / max(0.001, self.state_duration))
+        s = 0.5 * (1.0 - np.cos(np.pi * alpha))
+        current_cmd_qpos = (1.0 - s) * self.start_qpos + s * self.target_qpos
+
+        # 액추에이터 제어 명령 인가 (data.ctrl)
+        for i, q_val in enumerate(current_cmd_qpos):
             act_idx = self.ctrl_idx[i]
-            self.data.ctrl[act_idx] = q_target
+            self.data.ctrl[act_idx] = q_val
         self.data.ctrl[self.ctrl_idx[7]] = self.gripper_ctrl
 
 def run_pnp_prototype(mode="r1", view=True):
@@ -564,6 +536,7 @@ def run_pnp_prototype(mode="r1", view=True):
         model = mujoco.MjModel.from_xml_path(xml_path)
         data = mujoco.MjData(model)
         mujoco.mj_resetDataKeyframe(model, data, 0)
+        mujoco.mj_forward(model, data)  # ★ 기하 트리 및 좌표 갱신 필수
     except Exception as e:
         print(f"❌ 오류: 모델 로드 실패: {e}")
         return False
@@ -575,45 +548,55 @@ def run_pnp_prototype(mode="r1", view=True):
         controllers.append(RobotController("r2", model, data))
 
     dt = model.opt.timestep  # 0.001s (1ms)
-    total_time = 0.0
-    max_duration = 18.0
 
     print(f"• 활성화된 로봇 제어기: {[c.prefix.upper() for c in controllers]}")
     print("• 시뮬레이션을 시작합니다. 3D 창을 확인하세요...")
 
     if view:
         with mujoco.viewer.launch_passive(model, data) as viewer:
-            while viewer.is_running() and total_time < max_duration:
+            # 1단계: P&P 모션 시뮬레이션 루프
+            while viewer.is_running():
                 step_start = time.time()
                 
-                if int(total_time * 1000) % 20 == 0:
-                    for ctrl in controllers:
-                        ctrl.update(0.02)
+                # 1kHz 실시간 제어기 업데이트
+                for ctrl in controllers:
+                    ctrl.update(dt)
                 
+                # 1kHz 물리 적분 전진
                 mujoco.mj_step(model, data)
-                total_time += dt
-                
                 viewer.sync()
+                
+                # 모든 로봇의 P&P 작업이 완료되면 알림 출력 후 대기 루프로 진입
+                if all(c.state == "DONE" for c in controllers):
+                    print("\n" + "=" * 75)
+                    print(f"🎉 [{mode.upper()} 모드] P&P 작업이 성공적으로 완료되었습니다!")
+                    print("💡 3D 뷰어 창을 마우스로 자유롭게 조작해 보세요. 창을 닫으면 프로그램이 종료됩니다.")
+                    print("=" * 75)
+                    break
                 
                 elapsed = time.time() - step_start
                 if dt > elapsed:
                     time.sleep(dt - elapsed)
-                    
-                if all(c.state == "DONE" for c in controllers) and total_time > 15.0:
-                    break
+            
+            # 2단계: 작업 완료 후 사용자가 창을 닫을 때까지 뷰어 유지 루프
+            while viewer.is_running():
+                step_start = time.time()
+                mujoco.mj_step(model, data)  # 로봇이 자세를 유지하도록 물리 연산 지속
+                viewer.sync()
+                elapsed = time.time() - step_start
+                if dt > elapsed:
+                    time.sleep(dt - elapsed)
     else:
-        while total_time < max_duration:
-            if int(total_time * 1000) % 20 == 0:
-                for ctrl in controllers:
-                    ctrl.update(0.02)
+        while True:
+            for ctrl in controllers:
+                ctrl.update(dt)
             mujoco.mj_step(model, data)
-            total_time += dt
-            if all(c.state == "DONE" for c in controllers) and total_time > 15.0:
+            if all(c.state == "DONE" for c in controllers):
+                print("\n" + "=" * 75)
+                print(f"🎉 [{mode.upper()} 모드] P&P 프로토타입 시뮬레이션이 성공적으로 완료되었습니다.")
+                print("=" * 75)
                 break
 
-    print("\n" + "=" * 75)
-    print(f"🎉 [{mode.upper()} 모드] P&P 프로토타입 시뮬레이션이 성공적으로 완료되었습니다.")
-    print("=" * 75)
     return True
 
 if __name__ == "__main__":
@@ -633,7 +616,7 @@ if __name__ == "__main__":
 ```bash
 python test/phase03_pnp_prototype.py --mode r1
 ```
-* **동작 확인**: 좌측 로봇이 `item_A_Red`를 부드럽게 집어 올려 좌측 상단 `bin_A_Red` 적재함에 쏙 넣고 Home 자세로 복귀하는지 3D 뷰어로 관찰합니다.
+* **동작 확인**: 좌측 로봇이 `item_A_Red`로 부드럽게 접근 $\rightarrow$ 파지 $\rightarrow$ 들어올리기 $\rightarrow$ 좌측 상단 `bin_A_Red` 적재함에 안착 $\rightarrow$ Home 복귀하는지 3D 뷰어로 관찰합니다.
 
 ---
 
@@ -642,7 +625,7 @@ python test/phase03_pnp_prototype.py --mode r1
 ```bash
 python test/phase03_pnp_prototype.py --mode r2
 ```
-* **동작 확인**: 우측 로봇이 `item_A_Green`을 집어 우측 상단 `bin_A_Green` 적재함에 안착시키는지 확인합니다.
+* **동작 확인**: 우측 로봇이 `item_C_Blue`를 집어 우측 하단 `bin_C_Blue` 적재함에 안착시키는지 확인합니다.
 
 ---
 
@@ -657,11 +640,14 @@ python test/phase03_pnp_prototype.py --mode dual
 
 ## 4. 자주 발생하는 문제 및 해결법 (Troubleshooting)
 
-### Q1. DLS 역기구학(IK) 계산 시 관절이 급격히 회전하거나 목표 지점을 못 찾습니다.
-* **원인**: 목표 지점이 로봇의 최대 가용 작업 반경($0.855\text{m}$)을 벗어났거나, 감쇠 계수 $\lambda$가 너무 작아 특이점에서 발산한 경우입니다.
+### Q1. DLS 역기구학(IK) 계산 시 관절이 급격히 회전하거나 테이블을 뚫고 쳐집니다.
+* **원인**:
+  1. 모델 로드 직후 `mujoco.mj_forward(model, data)`를 호출하지 않아 물품/적재함의 초기 좌표가 `(0, 0, 0)`(바닥 중앙)으로 읽힌 경우.
+  2. IK 솔버가 실시간 시뮬레이션 중인 `data.qpos`를 직접 덮어써서 물리 엔진의 연속성이 깨진 경우.
+  3. 관절 한계(Joint Limits) 클램핑이 없어 Joint 4가 양수(위/아래 뒤집힘)로 꺾인 경우.
 * **해결법**:
-  * `IK_DAMPING` 값을 `0.05` ~ `0.1`로 유지합니다.
-  * 엔드이펙터가 작업대 바닥을 뚫지 않도록 Z축 최소 높이($Z \ge 0.775\text{m}$)를 보장합니다.
+  * 모델 로드 직후 반드시 `mujoco.mj_forward(model, data)`를 호출합니다.
+  * IK 계산 시 독립된 `ik_data` 인스턴스를 사용하고 `np.clip`으로 관절 리밋을 유지합니다.
 
 ### Q2. 그리퍼로 물건을 쥐는 순간 물건이 튀어 오르거나(Explosion) 미끄러집니다.
 * **원인**: 핑거 패드와 물품 간 접촉 침투(Penetration) 시 반발 탄성 계수가 너무 크거나 마찰력이 부족한 경우입니다.

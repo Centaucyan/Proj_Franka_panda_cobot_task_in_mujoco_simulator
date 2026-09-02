@@ -194,7 +194,7 @@ Proj_Franka_panda_cobot_task_in_ros2_and_mujoco_simulator/
      * 물품 파지 시 미끄러짐/폭발(Explosion) 없는 최적의 그리퍼 제어값(`ctrl=255/0`) 및 마찰력 확인.
   4. **3단계 점진적 Pick & Place 프로토타입 검증 (`test/phase03_pnp_prototype.py`)**:
      * **[Step 1] Robot 1 단독 P&P 테스트**: 좌측 로봇이 `item_A_Red`를 집어 `bin_A_Red`에 안착 (Robot 2는 Home 대기).
-     * **[Step 2] Robot 2 단독 P&P 테스트**: 우측 로봇이 `item_A_Green`을 집어 `bin_A_Green`에 안착 (Robot 1은 Home 대기).
+     * **[Step 2] Robot 2 단독 P&P 테스트**: 우측 로봇이 `item_C_Blue`를 집어 `bin_C_Blue`에 안착 (Robot 1은 Home 대기).
      * **[Step 3] Robot 1 & Robot 2 동시 구동(Concurrent) 테스트**: 두 로봇이 각각의 타겟을 향해 동시에 P&P 동작 수행 *(※ 동시 다중 액추에이터 제어 검증 목적이며, 상호 충돌 회피/선점 조율은 Phase 07에서 FCFS로 구현)*.
 
 ---
