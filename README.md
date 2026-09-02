@@ -1,5 +1,5 @@
 # Proj_Franka_panda_cobot_task_in_mujoco_simulator
-* Update: 2026.09.01.
+* Update: 2026.09.02.
 
 ## 1. Description
 * **개요:** MuJoCo 환경 기반 Franka Emika Panda 로봇을 활용한 객체 인식 알고리즘 적용 및 HRC(인간-로봇 협업) 물류 분류 시스템 구현
@@ -7,7 +7,7 @@
 ---
 
 ## 2. 작업 공간
-![workspace1](./documents/scenario_and_prd/20260831_02_work_space.png) ![workspace2](./documents/scenario_and_prd/20260901_01_work_space.png)
+![workspace](./documents/scenario_and_prd/20260902_01_work_space.png)
 ---
 
 ## 3. 환경
