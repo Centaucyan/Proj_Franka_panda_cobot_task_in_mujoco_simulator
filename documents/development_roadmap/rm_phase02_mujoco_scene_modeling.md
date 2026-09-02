@@ -252,7 +252,7 @@ ament_package()
 
 ### 🔹 Step 2: 3D 모델 및 메시 자산 디렉토리 구성
 
-`model/franka_emika_panda/assets`에 이미 준비되어 있는 Franka 로봇의 3D 메시(STL/OBJ) 파일들을 `franka_logistics_description/mjcf/assets` 경로에서 참조할 수 있도록 디렉토리를 구축합니다.
+`model_ori/franka_emika_panda/assets`에 이미 준비되어 있는 Franka 로봇의 3D 메시(STL/OBJ) 파일들을 `franka_logistics_description/mjcf/assets` 경로에서 참조할 수 있도록 디렉토리를 구축합니다.
 
 ```bash
 # mjcf 및 assets 디렉토리 생성
@@ -260,7 +260,7 @@ cd Proj_Franka_panda_cobot_task_in_ros2_and_mujoco_simulator/ros2_ws/src/franka_
 mkdir -p mjcf/assets meshes
 
 # model 폴더 내의 mesh assets 복사
-cp -r ../../../model/franka_emika_panda/assets/* mjcf/assets/
+cp -r ../../../model_ori/franka_emika_panda/assets/* mjcf/assets/
 ```
 
 ---
