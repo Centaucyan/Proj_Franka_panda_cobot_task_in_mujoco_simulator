@@ -2,8 +2,8 @@
 
 * **문서 번호**: GUIDE-LOGISTICS-PHASE-02
 * **관련 마일스톤**: [20260831_02_development_roadmap.md](./20260831_02_development_roadmap.md) - Phase 02
-* **작성일**: 2026-09-01
-* **버전**: v1.0.0
+* **작성일**: 2026-09-02
+* **버전**: v1.1.0
 * **작업 환경**: Ubuntu 22.04 LTS (x86_64) / ROS2 Humble / Miniconda (`ros2_mujoco_panda_py3_10`, Python 3.10) / MuJoCo 3.6.x
 
 ---
@@ -534,8 +534,8 @@ cp -r ../../../model/franka_emika_panda/assets/* mjcf/assets/
     </body>
 
     <!-- 4. 안전 감시 2D LiDAR 기준 사이트 (상단 / 하단) -->
-    <site name="lidar_top_frame" pos="0 0.9 0.8" size="0.03" type="sphere" rgba="1 0 1 0.8"/>
-    <site name="lidar_bottom_frame" pos="0 -0.9 0.8" size="0.03" type="sphere" rgba="1 0 1 0.8"/>
+    <site name="lidar_top_frame" pos="0 0.4 0.67" quat="1 0 0 0" size="0.03" type="sphere" rgba="1 0 1 0.8"/>
+    <site name="lidar_bottom_frame" pos="0 -0.4 0.67" quat="0 0 0 1" size="0.03" type="sphere" rgba="1 0 1 0.8"/>
 
     <!-- ============================================================================ -->
     <!-- 5. 로봇 1 (좌측 로봇, Robot 1, Prefix: r1_)                                    -->
@@ -649,7 +649,17 @@ cp -r ../../../model/franka_emika_panda/assets/* mjcf/assets/
                       <geom mesh="hand_c" class="collision"/>
 
                       <!-- Robot 1 Wrist Camera (Depth & RGB 렌더링용) -->
-                      <camera name="r1_wrist_camera" pos="0.05 0 0.05" quat="0.707107 0 0.707107 0" fovy="58"/>
+                      <!-- <camera name="r1_wrist_camera" pos="0.05 0 0.05" quat="0.707107 0 0.707107 0" fovy="58"/> -->
+                      <!--바닥면 중앙-->
+                      <!-- <camera name="r1_wrist_camera" pos="0 0 0.0584" quat="0 0 1 0" fovy="58"/> -->
+                      <!--집게 중심 중앙-->
+                      <!-- <camera name="r1_wrist_camera" pos="0 0 0.0103" quat="0 0 1 0" fovy="58"/> -->
+                      <!--브라켓 사용-->
+                      <camera name="r1_wrist_camera" pos="0.03 0 0.06" quat="0 0 1 0" fovy="58"/>
+                      <!-- 카메라 장착 위치 시각화 마커 (노란색 육면체) -->
+                      <!-- <site name="r1_cam_vis" pos="0.03 0 0.06" size="0.006" type="sphere" rgba="1 1 0 1"/> -->
+                      <site name="r1_cam_vis" pos="0.03 0 0.06" size="0.008 0.02 0.008" type="box" rgba="1 1 0 1"/>
+                      <!-- 엔드이펙터(집게) 제어 중심점 (빨간색 구체) (빨강색 구체) -->
                       <site name="r1_ee_site" pos="0 0 0.103" size="0.005" type="sphere" rgba="1 0 0 1"/>
 
                       <body name="r1_left_finger" pos="0 0 0.0584">
@@ -689,7 +699,7 @@ cp -r ../../../model/franka_emika_panda/assets/* mjcf/assets/
     <!-- ============================================================================ -->
     <!-- 6. 로봇 2 (우측 로봇, Robot 2, Prefix: r2_)                                    -->
     <!-- ============================================================================ -->
-    <body name="r2_link0" pos="0.65 0 0.75" childclass="panda">
+    <body name="r2_link0" pos="0.65 0 0.75" quat="0 0 0 1" childclass="panda">
       <inertial mass="0.629769" pos="-0.041018 -0.00014 0.049974"
         fullinertia="0.00315 0.00388 0.004285 8.2904e-7 0.00015 8.2299e-6"/>
       <geom mesh="link0_0" material="off_white" class="visual"/>
@@ -798,8 +808,18 @@ cp -r ../../../model/franka_emika_panda/assets/* mjcf/assets/
                       <geom mesh="hand_c" class="collision"/>
 
                       <!-- Robot 2 Wrist Camera (Depth & RGB 렌더링용) -->
-                      <camera name="r2_wrist_camera" pos="0.05 0 0.05" quat="0.707107 0 0.707107 0" fovy="58"/>
-                      <site name="r2_ee_site" pos="0 0 0.103" size="0.005" type="sphere" rgba="0 1 0 1"/>
+                      <!-- <camera name="r2_wrist_camera" pos="0.05 0 0.05" quat="0.707107 0 0.707107 0" fovy="58"/> -->
+                                            <!--바닥면 중앙-->
+                      <!-- <camera name="r2_wrist_camera" pos="0 0 0.0584" quat="0 0 1 0" fovy="58"/> -->
+                      <!--집게 중심 중앙-->
+                      <!-- <camera name="r2_wrist_camera" pos="0 0 0.0103" quat="0 0 1 0" fovy="58"/> -->
+                      <!--브라켓 사용-->
+                      <camera name="r2_wrist_camera" pos="0.03 0 0.06" quat="0 0 1 0" fovy="58"/>
+                      <!-- 카메라 장착 위치 시각화 마커 (노란색 육면체) -->
+                      <!-- <site name="r2_cam_vis" pos="0.03 0 0.06" size="0.006" type="sphere" rgba="1 1 0 1"/> -->
+                      <site name="r2_cam_vis" pos="0.03 0 0.06" size="0.008 0.02 0.008" type="box" rgba="1 1 0 1"/>
+                      <!-- 엔드이펙터(집게) 제어 중심점 (빨간색 구체) (빨강색 구체) -->
+                      <site name="r2_ee_site" pos="0 0 0.103" size="0.005" type="sphere" rgba="1 0 0 1"/>
 
                       <body name="r2_left_finger" pos="0 0 0.0584">
                         <inertial mass="0.015" pos="0 0 0" diaginertia="2.375e-6 2.375e-6 7.5e-7"/>
