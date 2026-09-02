@@ -1,7 +1,7 @@
 # [Phase 02 실습 가이드] MuJoCo 3.6.x 3D 가상 씬 및 물류 환경 모델링
 
 * **문서 번호**: GUIDE-LOGISTICS-PHASE-02
-* **관련 마일스톤**: [20260831_02_development_roadmap.md](./20260831_02_development_roadmap.md) - Phase 02
+* **관련 마일스톤**: [20260902_01_development_roadmap.md](./20260902_01_development_roadmap.md) - Phase 02
 * **작성일**: 2026-09-02
 * **버전**: v1.1.0
 * **작업 환경**: Ubuntu 22.04 LTS (x86_64) / ROS2 Humble / Miniconda (`ros2_mujoco_panda_py3_10`, Python 3.10) / MuJoCo 3.6.x

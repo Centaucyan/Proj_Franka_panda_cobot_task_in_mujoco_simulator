@@ -1,7 +1,7 @@
 # [Phase 01 실습 가이드] 개발 가상환경 구축 및 ROS2 워크스페이스 준비
 
 * **문서 번호**: GUIDE-LOGISTICS-PHASE-01
-* **관련 마일스톤**: [20260831_02_development_roadmap.md](./20260831_02_development_roadmap.md) - Phase 01
+* **관련 마일스톤**: [20260902_01_development_roadmap.md](./20260902_01_development_roadmap.md) - Phase 01
 * **작성일**: 2026-08-31
 * **버전**: v1.0.0
 * **작업 환경**: Ubuntu 22.04 LTS (x86_64) / ROS2 Humble / Miniconda (Python 3.10) / MuJoCo 3.6.x
